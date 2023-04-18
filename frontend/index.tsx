@@ -1,7 +1,7 @@
-import TreesApp from './trees';
+import LakesideFarmApp from './app';
 
 import { initializeBlock } from '@airtable/blocks/ui';
 
 import React from 'react';
 
-initializeBlock(() => <TreesApp />);
+initializeBlock(() => <LakesideFarmApp />);
