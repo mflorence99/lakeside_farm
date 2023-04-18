@@ -1,1 +1,1 @@
-Airtable extension fir Lakeside Farm Trees
+Airtable extension for Lakeside Farm
