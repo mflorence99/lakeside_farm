@@ -35,7 +35,7 @@ export default function DeleteTree({ ctx }): JSX.Element {
   };
   // 👇 build the form
   return (
-    <Box borderBottom="1px dotted gray">
+    <Box className="divided-box">
       {form.isDialogOpen && record && (
         <ConfirmationDialog
           body={`Tree ${record.getCellValueAsString(

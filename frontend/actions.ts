@@ -1,6 +1,16 @@
 import { Record } from '@airtable/blocks/models';
 import { Table } from '@airtable/blocks/models';
 
+type CreateLogsParams = {
+  date: string;
+  diameters: number[];
+  history: Table;
+  lengths: number[];
+  logs: Table;
+  stageId: string;
+  tree: Record;
+};
+
 type CreateTreeParams = {
   date: string;
   history: Table;
@@ -25,6 +35,51 @@ type UpdateTreeParams = {
   tree: Record;
   trees: Table;
 };
+
+export async function createLogs({
+  date,
+  diameters,
+  history,
+  lengths,
+  logs,
+  stageId,
+  tree
+}: CreateLogsParams): Promise<void> {
+  // 👇 grab the entire history, latest first
+  const query = await tree.selectLinkedRecordsFromCellAsync('History', {
+    sorts: [{ field: 'Date ended' }]
+  });
+  const latest = query.records[0];
+  if (latest) {
+    await history.updateRecordAsync(latest, {
+      'Date started': latest.getCellValue('Date ended'),
+      'Date ended': date
+    });
+  }
+  // 👇 create each log and initialize its history
+  for (let ix = 0; ix < lengths.length; ix++) {
+    if (lengths[ix]) {
+      // 👇 first create the log
+      const logId = await logs.createRecordAsync({
+        'Diameter': diameters[ix],
+        'Length': lengths[ix],
+        'Log ID': ix + 1,
+        'Stage': [{ id: stageId }],
+        'Tree': [{ id: tree.id }]
+      });
+      // 👇 then initialize its history
+      await history.createRecordAsync({
+        'Date ended': date,
+        'Log': [{ id: logId }],
+        'Precedent': latest ? [{ id: latest.id }] : null,
+        'Stage': [{ id: stageId }],
+        'Tree': [{ id: tree.id }]
+      });
+    }
+  }
+  // 👇 done with history
+  query.unloadData();
+}
 
 export async function createTree({
   date,

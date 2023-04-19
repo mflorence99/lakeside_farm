@@ -42,7 +42,7 @@ export default function CreateTree({ ctx }): JSX.Element {
   };
   // 👇 build the form
   return (
-    <Box borderBottom="1px dotted gray">
+    <Box className="divided-box">
       <Heading>Identify a standing tree</Heading>
       <Box display="flex" justifyContent="space-between">
         <FormField label="Species" width="auto">
@@ -54,12 +54,8 @@ export default function CreateTree({ ctx }): JSX.Element {
         </FormField>
         <FormField label="When identified" width="auto">
           <input
+            className="datetime-input"
             onChange={(e): void => setForm({ ...form, date: e.target.value })}
-            style={{
-              border: '1px dotted gray',
-              height: '30px',
-              outline: 'none'
-            }}
             type="datetime-local"
             value={form.date}
           />

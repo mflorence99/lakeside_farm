@@ -38,7 +38,7 @@ export default function HarvestTree({ ctx }): JSX.Element {
   };
   // 👇 build the form
   return (
-    <Box borderBottom="1px dotted gray">
+    <Box className="divided-box">
       <Heading>Harvest a standing tree</Heading>
       {ctx.selectedRecordIds.length !== 1 ||
       stageId !== ctx.stageBySymbol['STANDING'] ? (
@@ -53,12 +53,8 @@ export default function HarvestTree({ ctx }): JSX.Element {
           </FormField>
           <FormField label="When harvested" width="auto">
             <input
+              className="datetime-input"
               onChange={(e): void => setForm({ ...form, date: e.target.value })}
-              style={{
-                border: '1px dotted gray',
-                height: '30px',
-                outline: 'none'
-              }}
               type="datetime-local"
               value={form.date}
             />
