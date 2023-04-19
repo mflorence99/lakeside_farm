@@ -27,7 +27,7 @@ export default function LakesideFarmApp(): JSX.Element {
         jsx = <TreesApp />;
         break;
       default:
-        jsx = <Warning text="Switch to Trees, Logs, Products table" />;
+        jsx = <Warning text="Switch to Trees, Logs, or Finished Wood table" />;
     }
   return <Box padding={2}>{jsx}</Box>;
 }

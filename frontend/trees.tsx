@@ -2,9 +2,11 @@ import { Warning } from './components';
 
 import { createInitialEvent } from './actions';
 import { createTree } from './actions';
+import { toISOString } from './actions';
 
 import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
+import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 import { Record } from '@airtable/blocks/models';
 import { Select } from '@airtable/blocks/ui';
@@ -22,9 +24,11 @@ import React from 'react';
 type Context = {
   allSpecies: Record[];
   allStages: Record[];
-  events: Table;
+  history: Table;
   selectedRecordIds: string[];
   species: Table;
+  // 🔥 can't find source for interface SelectOption
+  speciesOptions: any[];
   stages: Table;
   stagesByName: { [name: string]: string };
   trees: Table;
@@ -42,17 +46,25 @@ export default function TreesApp(): JSX.Element {
   const cursor = useCursor();
   useLoadable(cursor);
   useWatchable(cursor, ['selectedRecordIds']);
+  context.selectedRecordIds = cursor.selectedRecordIds;
+  context.history = base.getTableByName('History');
+  context.trees = base.getTableByName('Trees');
+  // 👇 load up Species data
   context.species = base.getTableByName('Species');
-  context.allSpecies = useRecords(context.species);
+  context.allSpecies = useRecords(context.species, {
+    sorts: [{ field: 'Name' }]
+  });
+  context.speciesOptions = context.allSpecies.map((record) => ({
+    label: record.name,
+    value: record.id
+  }));
+  // 👇 load up Stages data
   context.stages = base.getTableByName('Stages');
   context.allStages = useRecords(context.stages);
   context.stagesByName = context.allStages.reduce((acc, record) => {
     acc[record.getCellValueAsString('Stage')] = record.id;
     return acc;
   }, {});
-  context.selectedRecordIds = cursor.selectedRecordIds;
-  context.events = base.getTableByName('Events');
-  context.trees = base.getTableByName('Trees');
   // 👇 build the app
   return (
     <Box>
@@ -65,15 +77,11 @@ export default function TreesApp(): JSX.Element {
 }
 
 function CreateTree(): JSX.Element {
-  // 👇 convert the species to a dropdown list
-  const options = context.allSpecies.map((record) => ({
-    label: record.name,
-    value: record.id
-  }));
   // 👇 prepare the form
-  const [date, setDate] = useState(new Date().toISOString().substring(0, 16));
-  const [speciesId, setSpeciesId] = useState(options[0].value);
+  const [date, setDate] = useState(toISOString(new Date()));
+  const [speciesId, setSpeciesId] = useState(null);
   const [working, setWorking] = useState(false);
+  const dfltSpecies = { label: 'Pick one', value: null };
   const stageId = context.stagesByName['Standing'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
@@ -83,72 +91,86 @@ function CreateTree(): JSX.Element {
       stageId,
       trees: context.trees
     });
-    await createInitialEvent({ date, events: context.events, stageId, treeId });
+    await createInitialEvent({
+      date,
+      history: context.history,
+      stageId,
+      treeId
+    });
     setWorking(false);
   };
   // 👇 build the form
-  const form = (
-    <Box display="flex" justifyContent="space-between">
-      <Select
-        onChange={(v: string): void => setSpeciesId(v)}
-        options={options}
-        value={speciesId}
-        width="auto"
-      />
-      <input
-        onChange={(e): void => setDate(e.target.value)}
-        style={{ alignSelf: 'center', border: 'none', outline: 'none' }}
-        type="datetime-local"
-        value={date}
-      />
-      <Button disabled={!speciesId || working} onClick={ok} variant="primary">
-        OK
-      </Button>
-    </Box>
-  );
   return (
-    <Box marginBottom={3}>
+    <Box>
       <Heading>Identify a standing tree</Heading>
-      {form}
+      <Box display="flex" justifyContent="space-between">
+        <FormField label="Species" width="auto">
+          <Select
+            onChange={(v: string): void => setSpeciesId(v)}
+            options={[dfltSpecies, ...context.speciesOptions]}
+            value={speciesId}
+          />
+        </FormField>
+        <FormField label="Date identified" width="auto">
+          <input
+            onChange={(e): void => setDate(e.target.value)}
+            style={{
+              border: '1px solid gray',
+              height: '30px',
+              outline: 'none'
+            }}
+            type="datetime-local"
+            value={date}
+          />
+        </FormField>
+        <Button
+          alignSelf="center"
+          disabled={!speciesId || working}
+          onClick={ok}
+          variant="primary"
+        >
+          OK
+        </Button>
+      </Box>
     </Box>
   );
 }
 
 function DeleteTree(): JSX.Element {
-  let form;
-  if (context.selectedRecordIds.length !== 1)
-    form = <Warning text="Select a single tree to delete" />;
-  else form = <Warning text="Only do this to remove test or incorrect data!" />;
   return (
-    <Box marginBottom={3}>
+    <Box>
       <Heading>Delete a tree and ALL its data</Heading>
-      {form}
+      {context.selectedRecordIds.length !== 1 ? (
+        <Warning text="Select a single tree to delete" />
+      ) : (
+        <Warning text="Only do this to remove test or incorrect data!" />
+      )}
     </Box>
   );
 }
 
 function HarvestTree(): JSX.Element {
-  let form;
-  if (context.selectedRecordIds.length !== 1)
-    form = <Warning text="Select a single tree to harvest" />;
-  else form = <form></form>;
   return (
-    <Box marginBottom={3}>
+    <Box>
       <Heading>Harvest a standing tree</Heading>
-      {form}
+      {context.selectedRecordIds.length !== 1 ? (
+        <Warning text="Select a single tree to harvest" />
+      ) : (
+        <form></form>
+      )}
     </Box>
   );
 }
 
 function LogTree(): JSX.Element {
-  let form;
-  if (context.selectedRecordIds.length !== 1)
-    form = <Warning text="Select a single tree to cut into logs" />;
-  else form = <form></form>;
   return (
-    <Box marginBottom={3}>
+    <Box>
       <Heading>Cut a harvested tree into logs</Heading>
-      {form}
+      {context.selectedRecordIds.length !== 1 ? (
+        <Warning text="Select a single tree to cut into logs" />
+      ) : (
+        <form></form>
+      )}
     </Box>
   );
 }

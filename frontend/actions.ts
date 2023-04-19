@@ -2,7 +2,7 @@ import { Table } from '@airtable/blocks/models';
 
 type CreateInitialEventParams = {
   date: string;
-  events: Table;
+  history: Table;
   stageId: string;
   treeId: string;
 };
@@ -14,7 +14,7 @@ type CreateTreeParams = { speciesId: string; stageId: string; trees: Table };
 
 export async function createInitialEvent({
   date,
-  events,
+  history,
   stageId,
   treeId
 }: CreateInitialEventParams): Promise<void> {
@@ -23,7 +23,7 @@ export async function createInitialEvent({
     'Stage': [{ id: stageId }],
     'Tree': [{ id: treeId }]
   };
-  await events.createRecordAsync(fields);
+  await history.createRecordAsync(fields);
 }
 
 export async function createTree({
@@ -36,6 +36,14 @@ export async function createTree({
     Stage: [{ id: stageId }]
   };
   return await trees.createRecordAsync(fields);
+}
+
+// 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
+export function toISOString(date: Date): string {
+  const pad = (num): string => `${num < 10 ? '0' : ''}${num}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 // 🔥 for testing only!
