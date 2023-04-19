@@ -1,52 +1,109 @@
+import { Record } from '@airtable/blocks/models';
 import { Table } from '@airtable/blocks/models';
 
-type CreateInitialEventParams = {
+type CreateTreeParams = {
+  date: string;
+  history: Table;
+  speciesId: string;
+  stageId: string;
+  trees: Table;
+};
+
+type DeleteTreeParams = {
+  history: Table;
+  logs: Table;
+  tree: Record;
+  trees: Table;
+};
+
+type GetRecordByIdParams = { recordId: string; table: Table };
+
+type UpdateTreeParams = {
   date: string;
   history: Table;
   stageId: string;
-  treeId: string;
+  tree: Record;
+  trees: Table;
 };
-type CreateTreeParams = { speciesId: string; stageId: string; trees: Table };
 
 // /////////////////////////////////////////////////////////////////////////////
 // ACTIONS
 // /////////////////////////////////////////////////////////////////////////////
 
-export async function createInitialEvent({
+export async function createTree({
   date,
   history,
-  stageId,
-  treeId
-}: CreateInitialEventParams): Promise<void> {
-  const fields = {
-    'Date ended': date,
-    'Stage': [{ id: stageId }],
-    'Tree': [{ id: treeId }]
-  };
-  await history.createRecordAsync(fields);
-}
-
-export async function createTree({
   speciesId,
   stageId,
   trees
 }: CreateTreeParams): Promise<string> {
-  const fields = {
+  // 👇 first create the tree
+  const treeId = await trees.createRecordAsync({
     Species: [{ id: speciesId }],
     Stage: [{ id: stageId }]
-  };
-  return await trees.createRecordAsync(fields);
+  });
+  // 👇 then initialize its history
+  await history.createRecordAsync({
+    'Date ended': date,
+    'Stage': [{ id: stageId }],
+    'Tree': [{ id: treeId }]
+  });
+  return treeId;
 }
 
-// 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
-export function toISOString(date: Date): string {
-  const pad = (num): string => `${num < 10 ? '0' : ''}${num}`;
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate()
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+export async function deleteTree({
+  history,
+  logs,
+  tree,
+  trees
+}: DeleteTreeParams): Promise<void> {
+  const historyIds = tree.getCellValue('History') as Array<any>;
+  if (historyIds?.length)
+    history.deleteRecordsAsync(historyIds.map((id) => id.id));
+  // 🔥 need to recursively delete here
+  const logIds = tree.getCellValue('Logs') as Array<any>;
+  if (logIds?.length) logs.deleteRecordsAsync(logIds.map((id) => id.id));
+  await trees.deleteRecordAsync(tree);
 }
 
-// 🔥 for testing only!
-export function sleep(ms): Promise<any> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+// 🔥 https://community.airtable.com/t5/development-apis/select-record-s-from-table-by-id-s/td-p/107212
+export async function getRecordById({
+  recordId,
+  table
+}: GetRecordByIdParams): Promise<Record> {
+  const query = await table.selectRecordsAsync();
+  const record = query.getRecordByIdIfExists(recordId);
+  query.unloadData();
+  return record;
+}
+
+export async function updateTree({
+  date,
+  history,
+  stageId,
+  tree,
+  trees
+}: UpdateTreeParams): Promise<void> {
+  // 👇 first update the tree
+  await trees.updateRecordAsync(tree, {
+    Stage: [{ id: stageId }]
+  });
+  // 👇 grab the entire history, latest first
+  const query = await tree.selectLinkedRecordsFromCellAsync('History', {
+    sorts: [{ field: 'Date ended' }]
+  });
+  const latest = query.records[0];
+  if (latest) {
+    await history.updateRecordAsync(latest, {
+      'Date started': latest.getCellValue('Date ended'),
+      'Date ended': date
+    });
+  }
+  await history.createRecordAsync({
+    'Date ended': date,
+    'Precedent': latest ? [{ id: latest.id }] : null,
+    'Stage': [{ id: stageId }],
+    'Tree': [{ id: tree.id }]
+  });
+  query.unloadData();
 }

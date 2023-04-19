@@ -14,20 +14,15 @@ export default function LakesideFarmApp(): JSX.Element {
   const base = useBase();
   const cursor = useCursor();
   useLoadable(cursor);
-  // 👇 load up common data
-  const table = base.getTableById(cursor.activeTableId);
-  const view = table.getViewById(cursor.activeViewId);
-  // 👇 quick exit if not Grid view
+  // 👇 dispatch according to table
   let jsx;
-  if (view.name !== 'Grid view') jsx = <Warning text="Switch to Grid view" />;
-  // 👇 otherwise dispatch according to table
-  else
-    switch (table.name) {
-      case 'Trees':
-        jsx = <TreesApp />;
-        break;
-      default:
-        jsx = <Warning text="Switch to Trees, Logs, or Finished Wood table" />;
-    }
+  const table = base.getTableByIdIfExists(cursor.activeTableId);
+  switch (table?.name) {
+    case 'Trees':
+      jsx = <TreesApp />;
+      break;
+    default:
+      jsx = <Warning text="Switch to Trees, Logs, or Finished Wood table" />;
+  }
   return <Box padding={2}>{jsx}</Box>;
 }

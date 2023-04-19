@@ -6,7 +6,7 @@ import React from 'react';
 
 export function Warning({ text }): JSX.Element {
   return (
-    <Box alignItems="center" display="flex">
+    <Box alignItems="center" display="flex" marginBottom={3}>
       <Icon fillColor="red" name="warning" size={16} />
       &nbsp;
       <Text>{text}</Text>
