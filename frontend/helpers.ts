@@ -1,7 +1,3 @@
-// /////////////////////////////////////////////////////////////////////////////
-// HELPERS
-// /////////////////////////////////////////////////////////////////////////////
-
 // 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
 export function toISOString(date: Date): string {
   const pad = (num): string => `${num < 10 ? '0' : ''}${num}`;

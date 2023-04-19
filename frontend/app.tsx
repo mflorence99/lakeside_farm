@@ -1,6 +1,6 @@
 import { Warning } from './components';
 
-import TreesApp from './trees';
+import TreesApp from './trees/app';
 
 import { Box } from '@airtable/blocks/ui';
 
