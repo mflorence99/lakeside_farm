@@ -1,3 +1,5 @@
+import { TreesAppProps } from './app';
+
 import { createTree } from '../actions';
 import { getRecordById } from '../actions';
 import { toISOString } from '../helpers';
@@ -6,6 +8,7 @@ import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
+import { Loader } from '@airtable/blocks/ui';
 import { Select } from '@airtable/blocks/ui';
 
 import { expandRecord } from '@airtable/blocks/ui';
@@ -13,7 +16,7 @@ import { useState } from 'react';
 
 import React from 'react';
 
-export default function CreateTree({ ctx }): JSX.Element {
+export default function CreateTree({ ctx }: TreesAppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
     date: toISOString(new Date()),
@@ -60,14 +63,18 @@ export default function CreateTree({ ctx }): JSX.Element {
             value={form.date}
           />
         </FormField>
-        <Button
-          alignSelf="center"
-          disabled={!form.speciesId || form.working}
-          onClick={ok}
-          variant="primary"
-        >
-          OK
-        </Button>
+        {form.working ? (
+          <Loader alignSelf="center" scale={0.8} />
+        ) : (
+          <Button
+            alignSelf="center"
+            disabled={!form.speciesId}
+            onClick={ok}
+            variant="primary"
+          >
+            OK
+          </Button>
+        )}
       </Box>
     </Box>
   );

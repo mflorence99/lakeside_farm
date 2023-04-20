@@ -1,4 +1,4 @@
-import { Warning } from '../components';
+import { TreesAppProps } from './app';
 
 import { createLogs } from '../actions';
 import { toISOString } from '../helpers';
@@ -10,14 +10,14 @@ import { CellRenderer } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 import { Input } from '@airtable/blocks/ui';
+import { Loader } from '@airtable/blocks/ui';
 
 import { expandRecord } from '@airtable/blocks/ui';
-import { useRecordById } from '@airtable/blocks/ui';
 import { useState } from 'react';
 
 import React from 'react';
 
-export default function LogTree({ ctx }): JSX.Element {
+export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
   // 👇 prepare the form
   const logIndex = [0, 1, 2, 3, 4];
   const [form, setForm] = useState({
@@ -26,9 +26,9 @@ export default function LogTree({ ctx }): JSX.Element {
     lengths: new Array(logIndex.length).fill(''),
     working: false
   });
-  const record = useRecordById(ctx.trees, ctx.selectedRecordIds[0] ?? '');
-  const numLogs = record?.getCellValue('# Logs') as number;
-  const stageId = record?.getCellValue('Stage')?.[0]?.id;
+  const numLogs = ctx.tree?.getCellValue('# Logs') as number;
+  const stageId = ctx.tree?.getCellValue('Stage')?.[0]?.id;
+  const disabled = numLogs !== 0 || stageId !== ctx.stageBySymbol['HARVESTED'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -36,7 +36,7 @@ export default function LogTree({ ctx }): JSX.Element {
       date: form.date,
       history: ctx.history,
       stageId: ctx.stageBySymbol['LOGGED'],
-      tree: record,
+      tree: ctx.tree,
       trees: ctx.trees
     });
     await createLogs({
@@ -46,102 +46,92 @@ export default function LogTree({ ctx }): JSX.Element {
       lengths: form.lengths,
       logs: ctx.logs,
       stageId: ctx.stageBySymbol['PRE_MILL'],
-      tree: record
+      tree: ctx.tree
     });
-    expandRecord(record);
+    expandRecord(ctx.tree);
     setForm({ ...form, working: false });
   };
   // 👇 build the form
   return (
     <Box className="divided-box">
       <Heading>Cut a harvested tree into logs</Heading>
-      {ctx.selectedRecordIds.length !== 1 ||
-      numLogs !== 0 ||
-      stageId !== ctx.stageBySymbol['HARVESTED'] ? (
-        <Warning text="Select a harvested tree to cut into logs" />
-      ) : (
-        <Box>
-          <table width="100%">
-            <thead>
-              <tr>
-                <th></th>
-                {logIndex.map((index) => (
-                  <th key={`${index}`}>{`#${index + 1}`}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Length (ft)</td>
-                {logIndex.map((index) => (
-                  <td
-                    key={`${index}`}
-                    width={`${100 / (logIndex.length + 1)}%`}
-                  >
-                    <Input
-                      onChange={(e): void => {
-                        const lengths = [...form.lengths];
-                        lengths[index] = e.target.valueAsNumber;
-                        setForm({ ...form, lengths });
-                      }}
-                      type="number"
-                      value={form.lengths[index]}
-                    />
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <td>Diam (in)</td>
-                {logIndex.map((index) => (
-                  <td
-                    key={`${index}`}
-                    width={`${100 / (logIndex.length + 1)}%`}
-                  >
-                    <Input
-                      onChange={(e): void => {
-                        const diameters = [...form.diameters];
-                        diameters[index] = e.target.valueAsNumber;
-                        setForm({ ...form, diameters });
-                      }}
-                      type="number"
-                      value={form.diameters[index]}
-                    />
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+      <Box>
+        <table width="100%">
+          <thead>
+            <tr>
+              <th></th>
+              {logIndex.map((index) => (
+                <th key={`${index}`}>{`#${index + 1}`}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Length (ft)</td>
+              {logIndex.map((index) => (
+                <td key={`${index}`} width={`${100 / (logIndex.length + 1)}%`}>
+                  <Input
+                    onChange={(e): void => {
+                      const lengths = [...form.lengths];
+                      lengths[index] = e.target.valueAsNumber;
+                      setForm({ ...form, lengths });
+                    }}
+                    type="number"
+                    value={form.lengths[index]}
+                  />
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td>Diam (in)</td>
+              {logIndex.map((index) => (
+                <td key={`${index}`} width={`${100 / (logIndex.length + 1)}%`}>
+                  <Input
+                    onChange={(e): void => {
+                      const diameters = [...form.diameters];
+                      diameters[index] = e.target.valueAsNumber;
+                      setForm({ ...form, diameters });
+                    }}
+                    type="number"
+                    value={form.diameters[index]}
+                  />
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
 
-          <br />
+        <br />
 
-          <Box display="flex" justifyContent="space-between">
-            <FormField label="Tree to log" width="auto">
-              <CellRenderer
-                field={ctx.trees.getFieldByName('Name')}
-                record={record}
-              />
-            </FormField>
-            <FormField label="When logged" width="auto">
-              <input
-                className="datetime-input"
-                onChange={(e): void =>
-                  setForm({ ...form, date: e.target.value })
-                }
-                type="datetime-local"
-                value={form.date}
-              />
-            </FormField>
+        <Box display="flex" justifyContent="space-between">
+          <FormField label="Tree to log" width="auto">
+            <CellRenderer
+              field={ctx.trees.getFieldByName('Name')}
+              record={ctx.tree}
+            />
+          </FormField>
+          <FormField label="When logged" width="auto">
+            <input
+              className="datetime-input"
+              onChange={(e): void => setForm({ ...form, date: e.target.value })}
+              type="datetime-local"
+              value={form.date}
+            />
+          </FormField>
+          {form.working ? (
+            <Loader alignSelf="center" scale={0.8} />
+          ) : (
             <Button
               alignSelf="center"
-              disabled={!form.diameters[0] || !form.lengths[0] || form.working}
+              disabled={disabled || !form.diameters[0] || !form.lengths[0]}
               onClick={ok}
               variant="primary"
             >
               OK
             </Button>
-          </Box>
+          )}
         </Box>
-      )}
+      </Box>
     </Box>
   );
 }

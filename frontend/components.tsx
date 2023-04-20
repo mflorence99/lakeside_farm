@@ -8,7 +8,7 @@ import React from 'react';
 
 export function Warning({ text }): JSX.Element {
   return (
-    <Box alignItems="center" display="flex" marginBottom={3}>
+    <Box alignItems="center" display="flex">
       <Icon fillColor={colors.RED} name="warning" size={16} />
       &nbsp;
       <Text>{text}</Text>

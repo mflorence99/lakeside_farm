@@ -10,23 +10,28 @@ import { Table } from '@airtable/blocks/models';
 import { useBase } from '@airtable/blocks/ui';
 import { useCursor } from '@airtable/blocks/ui';
 import { useLoadable } from '@airtable/blocks/ui';
+import { useRecordById } from '@airtable/blocks/ui';
 import { useRecords } from '@airtable/blocks/ui';
 import { useWatchable } from '@airtable/blocks/ui';
 
 import React from 'react';
 
-type TreesAppContext = {
+export type TreesAppContext = {
   allSpecies: Record[];
   allStages: Record[];
   history: Table;
   logs: Table;
-  selectedRecordIds: string[];
   species: Table;
   // 🔥 can't find source for interface SelectOption
-  speciesOptions: any[];
+  speciesOptions: { label: string; value: string }[];
   stageBySymbol: { [symbol: string]: string };
   stages: Table;
+  tree: Record;
   trees: Table;
+};
+
+export type TreesAppProps = {
+  ctx: TreesAppContext;
 };
 
 export default function TreesApp(): JSX.Element {
@@ -40,11 +45,11 @@ export default function TreesApp(): JSX.Element {
     allStages: null,
     history: base.getTableByName('History'),
     logs: base.getTableByName('Logs'),
-    selectedRecordIds: cursor.selectedRecordIds,
     species: base.getTableByName('Species'),
     speciesOptions: null,
     stageBySymbol: null,
     stages: base.getTableByName('Stages'),
+    tree: null,
     trees: base.getTableByName('Trees')
   };
   // 👇 load up Species data
@@ -61,6 +66,13 @@ export default function TreesApp(): JSX.Element {
     acc[record.getCellValueAsString('SYMBOL')] = record.id;
     return acc;
   }, {});
+  // 👇 load up the current Tree
+  ctx.tree = useRecordById(
+    ctx.trees,
+    cursor.selectedRecordIds.length === 1 ? cursor.selectedRecordIds[0] : ''
+  );
+  // 👇 now the context is readonly!
+  Object.freeze(ctx);
   // 👇 build the app
   return (
     <Box>

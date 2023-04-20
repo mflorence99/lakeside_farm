@@ -1,6 +1,14 @@
 import { Record } from '@airtable/blocks/models';
 import { Table } from '@airtable/blocks/models';
 
+type CompleteMilestoneParams = {
+  date: string;
+  history: Table;
+  logId: string;
+  record: Record;
+  treeId: string;
+};
+
 type CreateLogsParams = {
   date: string;
   diameters: number[];
@@ -36,6 +44,44 @@ type UpdateTreeParams = {
   trees: Table;
 };
 
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 completeMilestone
+// ///////////////////////////////////////////////////////////////////////////
+
+export async function completeMilestone({
+  date,
+  history,
+  logId,
+  record,
+  treeId
+}: CompleteMilestoneParams): Promise<Record> {
+  // 👇 grab the entire history
+  const query = await record.selectLinkedRecordsFromCellAsync('History');
+  // 👇 find the milestone for this tree, this log
+  const milestone = query.records.find((history) => {
+    const matchesLog =
+      (!logId && !history.getCellValue('Log')?.[0]?.id) ||
+      logId === history.getCellValue('Log')?.[0]?.id;
+    const matchesTree = treeId === history.getCellValue('Tree')?.[0]?.id;
+    const notStarted = !history.getCellValue('Date started');
+    return matchesLog && matchesTree && notStarted;
+  });
+  // 👇 if the milestone was found, complete it
+  if (milestone) {
+    await history.updateRecordAsync(milestone, {
+      'Date started': milestone.getCellValue('Date ended'),
+      'Date ended': date
+    });
+  }
+  // 👇 done with history data
+  query.unloadData();
+  return milestone;
+}
+
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 createLogs
+// ///////////////////////////////////////////////////////////////////////////
+
 export async function createLogs({
   date,
   diameters,
@@ -45,18 +91,15 @@ export async function createLogs({
   stageId,
   tree
 }: CreateLogsParams): Promise<void> {
-  // 👇 grab the entire history, latest first
-  const query = await tree.selectLinkedRecordsFromCellAsync('History', {
-    sorts: [{ field: 'Date ended' }]
-  });
-  const latest = query.records[0];
-  if (latest) {
-    await history.updateRecordAsync(latest, {
-      'Date started': latest.getCellValue('Date ended'),
-      'Date ended': date
-    });
-  }
-  // 👇 create each log and initialize its history
+  // 👇 complete the last milestone
+  // const milestone = await completeMilestone({
+  //   date,
+  //   history,
+  //   logId: null,
+  //   record: tree,
+  //   treeId: tree.id
+  // });
+  // 👇 create each log
   for (let ix = 0; ix < lengths.length; ix++) {
     if (lengths[ix]) {
       // 👇 first create the log
@@ -68,18 +111,20 @@ export async function createLogs({
         'Tree': [{ id: tree.id }]
       });
       // 👇 then initialize its history
-      await history.createRecordAsync({
-        'Date ended': date,
-        'Log': [{ id: logId }],
-        'Precedent': latest ? [{ id: latest.id }] : null,
-        'Stage': [{ id: stageId }],
-        'Tree': [{ id: tree.id }]
-      });
+      // await history.createRecordAsync({
+      //   'Date ended': date,
+      //   'Log': [{ id: logId }],
+      //   'Precedent': milestone ? [{ id: milestone.id }] : null,
+      //   'Stage': [{ id: stageId }],
+      //   'Tree': [{ id: tree.id }]
+      // });
     }
   }
-  // 👇 done with history
-  query.unloadData();
 }
+
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 createTree
+// ///////////////////////////////////////////////////////////////////////////
 
 export async function createTree({
   date,
@@ -101,6 +146,10 @@ export async function createTree({
   });
   return treeId;
 }
+
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 deleteTree
+// ///////////////////////////////////////////////////////////////////////////
 
 export async function deleteTree({
   history,
@@ -128,6 +177,10 @@ export async function getRecordById({
   return record;
 }
 
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 updateTree
+// ///////////////////////////////////////////////////////////////////////////
+
 export async function updateTree({
   date,
   history,
@@ -139,22 +192,19 @@ export async function updateTree({
   await trees.updateRecordAsync(tree, {
     Stage: [{ id: stageId }]
   });
-  // 👇 grab the entire history, latest first
-  const query = await tree.selectLinkedRecordsFromCellAsync('History', {
-    sorts: [{ field: 'Date ended' }]
+  // 👇 complete the last milestone
+  const milestone = await completeMilestone({
+    date,
+    history,
+    logId: null,
+    record: tree,
+    treeId: tree.id
   });
-  const latest = query.records[0];
-  if (latest) {
-    await history.updateRecordAsync(latest, {
-      'Date started': latest.getCellValue('Date ended'),
-      'Date ended': date
-    });
-  }
+  // 👇 write the successor mistory
   await history.createRecordAsync({
     'Date ended': date,
-    'Precedent': latest ? [{ id: latest.id }] : null,
+    'Precedent': milestone ? [{ id: milestone.id }] : null,
     'Stage': [{ id: stageId }],
     'Tree': [{ id: tree.id }]
   });
-  query.unloadData();
 }
