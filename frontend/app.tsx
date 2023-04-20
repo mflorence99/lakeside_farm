@@ -1,5 +1,6 @@
 import { Warning } from './components';
 
+import LogsApp from './logs/app';
 import TreesApp from './trees/app';
 
 import { Box } from '@airtable/blocks/ui';
@@ -22,6 +23,14 @@ const css = `
   .divided-box {
     border-bottom: 1px dotted ${colors.GRAY};
   }
+
+  .ok-button {
+    width: 3rem;
+  }
+
+  .spinner {
+    width: 3rem;
+  }
 `;
 
 export default function LakesideFarmApp(): JSX.Element {
@@ -33,6 +42,9 @@ export default function LakesideFarmApp(): JSX.Element {
   let jsx;
   const table = base.getTableByIdIfExists(cursor.activeTableId);
   switch (table?.name) {
+    case 'Logs':
+      jsx = <LogsApp />;
+      break;
     case 'Trees':
       jsx = <TreesApp />;
       break;

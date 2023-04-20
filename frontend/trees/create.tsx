@@ -47,6 +47,7 @@ export default function CreateTree({ ctx }: TreesAppProps): JSX.Element {
   return (
     <Box className="divided-box">
       <Heading>Identify a standing tree</Heading>
+
       <Box display="flex" justifyContent="space-between">
         <FormField label="Species" width="auto">
           <Select
@@ -64,10 +65,11 @@ export default function CreateTree({ ctx }: TreesAppProps): JSX.Element {
           />
         </FormField>
         {form.working ? (
-          <Loader alignSelf="center" scale={0.8} />
+          <Loader alignSelf="center" className="spinner" scale={0.3} />
         ) : (
           <Button
             alignSelf="center"
+            className="ok-button"
             disabled={!form.speciesId}
             onClick={ok}
             variant="primary"

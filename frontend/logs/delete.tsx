@@ -1,6 +1,6 @@
-import { TreesAppProps } from './app';
+import { LogsAppProps } from './app';
 
-import { deleteTree } from '../actions';
+import { deleteLog } from '../actions';
 
 import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
@@ -15,30 +15,29 @@ import { useState } from 'react';
 
 import React from 'react';
 
-export default function DeleteTree({ ctx }: TreesAppProps): JSX.Element {
+export default function DeleteLog({ ctx }: LogsAppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
     isDialogOpen: false,
     working: false
   });
-  const disabled = !ctx.tree;
+  const disabled = !ctx.log;
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
-    await deleteTree({
+    await deleteLog({
       history: ctx.history,
-      logs: ctx.logs,
-      tree: ctx.tree,
-      trees: ctx.trees
+      log: ctx.log,
+      logs: ctx.logs
     });
     setForm({ ...form, isDialogOpen: false, working: false });
   };
   // 👇 build the form
   return (
     <Box>
-      {form.isDialogOpen && ctx.tree && (
+      {form.isDialogOpen && ctx.log && (
         <ConfirmationDialog
-          body={`Tree ${ctx.tree.getCellValueAsString(
+          body={`Log ${ctx.log.getCellValueAsString(
             'Name'
           )} and ALL its associated data will be permanently deleted. Only perform this action in order to clean up test data etc.`}
           isConfirmActionDangerous={true}
@@ -48,13 +47,13 @@ export default function DeleteTree({ ctx }: TreesAppProps): JSX.Element {
         />
       )}
 
-      <Heading textColor={colors.RED}>Delete a tree and ALL its data</Heading>
+      <Heading textColor={colors.RED}>Delete a log and ALL its data</Heading>
 
       <Box display="flex" justifyContent="space-between">
-        <FormField label="Tree to delete" width="auto">
+        <FormField label="Log to delete" width="auto">
           <CellRenderer
-            field={ctx.trees.getFieldByName('Name')}
-            record={ctx.tree}
+            field={ctx.logs.getFieldByName('Name')}
+            record={ctx.log}
           />
         </FormField>
         {form.working ? (

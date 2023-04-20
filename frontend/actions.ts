@@ -1,13 +1,8 @@
+import { getLinkCellId } from './helpers';
+import { getLinkCellIds } from './helpers';
+
 import { Record } from '@airtable/blocks/models';
 import { Table } from '@airtable/blocks/models';
-
-type CompleteMilestoneParams = {
-  date: string;
-  history: Table;
-  logId: string;
-  record: Record;
-  treeId: string;
-};
 
 type CreateLogsParams = {
   date: string;
@@ -27,6 +22,12 @@ type CreateTreeParams = {
   trees: Table;
 };
 
+type DeleteLogParams = {
+  history: Table;
+  log: Record;
+  logs: Table;
+};
+
 type DeleteTreeParams = {
   history: Table;
   logs: Table;
@@ -36,6 +37,15 @@ type DeleteTreeParams = {
 
 type GetRecordByIdParams = { recordId: string; table: Table };
 
+type FindAndCompleteMilestoneParams = {
+  date: string;
+  history: Table;
+  leaveOpen?: boolean;
+  logId: string;
+  record: Record;
+  treeId: string;
+};
+
 type UpdateTreeParams = {
   date: string;
   history: Table;
@@ -43,40 +53,6 @@ type UpdateTreeParams = {
   tree: Record;
   trees: Table;
 };
-
-// ///////////////////////////////////////////////////////////////////////////
-// 🔶 completeMilestone
-// ///////////////////////////////////////////////////////////////////////////
-
-export async function completeMilestone({
-  date,
-  history,
-  logId,
-  record,
-  treeId
-}: CompleteMilestoneParams): Promise<Record> {
-  // 👇 grab the entire history
-  const query = await record.selectLinkedRecordsFromCellAsync('History');
-  // 👇 find the milestone for this tree, this log
-  const milestone = query.records.find((history) => {
-    const matchesLog =
-      (!logId && !history.getCellValue('Log')?.[0]?.id) ||
-      logId === history.getCellValue('Log')?.[0]?.id;
-    const matchesTree = treeId === history.getCellValue('Tree')?.[0]?.id;
-    const notStarted = !history.getCellValue('Date started');
-    return matchesLog && matchesTree && notStarted;
-  });
-  // 👇 if the milestone was found, complete it
-  if (milestone) {
-    await history.updateRecordAsync(milestone, {
-      'Date started': milestone.getCellValue('Date ended'),
-      'Date ended': date
-    });
-  }
-  // 👇 done with history data
-  query.unloadData();
-  return milestone;
-}
 
 // ///////////////////////////////////////////////////////////////////////////
 // 🔶 createLogs
@@ -92,13 +68,14 @@ export async function createLogs({
   tree
 }: CreateLogsParams): Promise<void> {
   // 👇 complete the last milestone
-  // const milestone = await completeMilestone({
-  //   date,
-  //   history,
-  //   logId: null,
-  //   record: tree,
-  //   treeId: tree.id
-  // });
+  const milestone = await findAndCompleteMilestone({
+    date,
+    history,
+    leaveOpen: true, // 👈 keep the last tree stage as a milestone
+    logId: null,
+    record: tree,
+    treeId: tree.id
+  });
   // 👇 create each log
   for (let ix = 0; ix < lengths.length; ix++) {
     if (lengths[ix]) {
@@ -111,13 +88,13 @@ export async function createLogs({
         'Tree': [{ id: tree.id }]
       });
       // 👇 then initialize its history
-      // await history.createRecordAsync({
-      //   'Date ended': date,
-      //   'Log': [{ id: logId }],
-      //   'Precedent': milestone ? [{ id: milestone.id }] : null,
-      //   'Stage': [{ id: stageId }],
-      //   'Tree': [{ id: tree.id }]
-      // });
+      await history.createRecordAsync({
+        'Date ended': date,
+        'Log': [{ id: logId }],
+        'Precedent': milestone ? [{ id: milestone.id }] : null,
+        'Stage': [{ id: stageId }],
+        'Tree': [{ id: tree.id }]
+      });
     }
   }
 }
@@ -148,6 +125,24 @@ export async function createTree({
 }
 
 // ///////////////////////////////////////////////////////////////////////////
+// 🔶 deleteLog
+// ///////////////////////////////////////////////////////////////////////////
+
+export async function deleteLog({
+  history,
+  log,
+  logs
+}: DeleteLogParams): Promise<void> {
+  // 👇 delete history first
+  const historyIds = getLinkCellIds(log, 'History');
+  history.deleteRecordsAsync(historyIds);
+  // 🔥 need to recursively delete here
+  // const logIds = getLinkCellIds(tree, 'Logs');
+  // logs.deleteRecordsAsync(logIds);
+  await logs.deleteRecordAsync(log);
+}
+
+// ///////////////////////////////////////////////////////////////////////////
 // 🔶 deleteTree
 // ///////////////////////////////////////////////////////////////////////////
 
@@ -157,14 +152,23 @@ export async function deleteTree({
   tree,
   trees
 }: DeleteTreeParams): Promise<void> {
-  const historyIds = tree.getCellValue('History') as Array<any>;
-  if (historyIds?.length)
-    history.deleteRecordsAsync(historyIds.map((id) => id.id));
-  // 🔥 need to recursively delete here
-  const logIds = tree.getCellValue('Logs') as Array<any>;
-  if (logIds?.length) logs.deleteRecordsAsync(logIds.map((id) => id.id));
+  // 👇 delete history first
+  const historyIds = getLinkCellIds(tree, 'History');
+  history.deleteRecordsAsync(historyIds);
+  // 🔥 this could be wicked slow
+  const logIds = getLinkCellIds(tree, 'Logs');
+  for (const logId of logIds) {
+    const log = await getRecordById({ recordId: logId, table: logs });
+    await deleteLog({ history, log, logs });
+  }
+  logs.deleteRecordsAsync(logIds);
+  // 👇 finally, delete the tree
   await trees.deleteRecordAsync(tree);
 }
+
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 getRecordById
+// ///////////////////////////////////////////////////////////////////////////
 
 // 🔥 https://community.airtable.com/t5/development-apis/select-record-s-from-table-by-id-s/td-p/107212
 export async function getRecordById({
@@ -175,6 +179,41 @@ export async function getRecordById({
   const record = query.getRecordByIdIfExists(recordId);
   query.unloadData();
   return record;
+}
+
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 findAndCompleteMilestone
+// ///////////////////////////////////////////////////////////////////////////
+
+export async function findAndCompleteMilestone({
+  date,
+  history,
+  leaveOpen,
+  logId,
+  record,
+  treeId
+}: FindAndCompleteMilestoneParams): Promise<Record> {
+  // 👇 grab the entire history
+  const query = await record.selectLinkedRecordsFromCellAsync('History');
+  // 👇 find the milestone for this tree, this log
+  const milestone = query.records.find((history) => {
+    const matchesLog =
+      (!logId && !getLinkCellId(history, 'Log')) ||
+      logId === getLinkCellId(history, 'Log');
+    const matchesTree = treeId === getLinkCellId(history, 'Tree');
+    const notStarted = !history.getCellValue('Date started');
+    return matchesLog && matchesTree && notStarted;
+  });
+  // 👇 if the milestone was found, complete it
+  if (!leaveOpen && milestone) {
+    await history.updateRecordAsync(milestone, {
+      'Date started': milestone.getCellValue('Date ended'),
+      'Date ended': date
+    });
+  }
+  // 👇 done with history data
+  query.unloadData();
+  return milestone;
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -193,7 +232,7 @@ export async function updateTree({
     Stage: [{ id: stageId }]
   });
   // 👇 complete the last milestone
-  const milestone = await completeMilestone({
+  const milestone = await findAndCompleteMilestone({
     date,
     history,
     logId: null,

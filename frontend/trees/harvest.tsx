@@ -1,5 +1,6 @@
 import { TreesAppProps } from './app';
 
+import { getLinkCellId } from '../helpers';
 import { toISOString } from '../helpers';
 import { updateTree } from '../actions';
 
@@ -21,7 +22,7 @@ export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
     date: toISOString(new Date()),
     working: false
   });
-  const stageId = ctx.tree?.getCellValue('Stage')?.[0]?.id;
+  const stageId = getLinkCellId(ctx.tree, 'Stage');
   const disabled = stageId !== ctx.stageBySymbol['STANDING'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
@@ -40,6 +41,7 @@ export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
   return (
     <Box className="divided-box">
       <Heading>Harvest a standing tree</Heading>
+
       <Box display="flex" justifyContent="space-between">
         <FormField label="Tree to harvest" width="auto">
           <CellRenderer
@@ -56,10 +58,11 @@ export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
           />
         </FormField>
         {form.working ? (
-          <Loader alignSelf="center" scale={0.8} />
+          <Loader alignSelf="center" className="spinner" scale={0.3} />
         ) : (
           <Button
             alignSelf="center"
+            className="ok-button"
             disabled={disabled}
             onClick={ok}
             variant="primary"

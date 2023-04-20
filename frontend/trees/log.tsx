@@ -1,12 +1,15 @@
 import { TreesAppProps } from './app';
 
 import { createLogs } from '../actions';
+import { getCellValueAsNumber } from '../helpers';
+import { getLinkCellId } from '../helpers';
 import { toISOString } from '../helpers';
 import { updateTree } from '../actions';
 
 import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
 import { CellRenderer } from '@airtable/blocks/ui';
+import { ConfirmationDialog } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 import { Input } from '@airtable/blocks/ui';
@@ -23,11 +26,12 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
   const [form, setForm] = useState({
     date: toISOString(new Date()),
     diameters: new Array(logIndex.length).fill(''),
+    isDialogOpen: false,
     lengths: new Array(logIndex.length).fill(''),
     working: false
   });
-  const numLogs = ctx.tree?.getCellValue('# Logs') as number;
-  const stageId = ctx.tree?.getCellValue('Stage')?.[0]?.id;
+  const numLogs = getCellValueAsNumber(ctx.tree, '# Logs');
+  const stageId = getLinkCellId(ctx.tree, 'Stage');
   const disabled = numLogs !== 0 || stageId !== ctx.stageBySymbol['HARVESTED'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
@@ -49,12 +53,22 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
       tree: ctx.tree
     });
     expandRecord(ctx.tree);
-    setForm({ ...form, working: false });
+    setForm({ ...form, isDialogOpen: false, working: false });
   };
   // 👇 build the form
   return (
     <Box className="divided-box">
+      {form.isDialogOpen && ctx.tree && (
+        <ConfirmationDialog
+          body={`Make sure that the number of logs has been entered correctly. Their length and diameter can be changed later, but new logs can't be added.`}
+          onCancel={(): void => setForm({ ...form, isDialogOpen: false })}
+          onConfirm={ok}
+          title="Are you sure?"
+        />
+      )}
+
       <Heading>Cut a harvested tree into logs</Heading>
+
       <Box>
         <table width="100%">
           <thead>
@@ -119,12 +133,13 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
             />
           </FormField>
           {form.working ? (
-            <Loader alignSelf="center" scale={0.8} />
+            <Loader alignSelf="center" className="spinner" scale={0.3} />
           ) : (
             <Button
               alignSelf="center"
+              className="ok-button"
               disabled={disabled || !form.diameters[0] || !form.lengths[0]}
-              onClick={ok}
+              onClick={(): void => setForm({ ...form, isDialogOpen: true })}
               variant="primary"
             >
               OK
