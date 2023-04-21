@@ -22,12 +22,6 @@ type CreateTreeParams = {
   trees: Table;
 };
 
-type DeleteLogParams = {
-  history: Table;
-  log: Record;
-  logs: Table;
-};
-
 type DeleteTreeParams = {
   history: Table;
   logs: Table;
@@ -46,12 +40,14 @@ type FindAndCompleteMilestoneParams = {
   treeId: string;
 };
 
-type UpdateTreeParams = {
+type UpdateRecordParams = {
   date: string;
   history: Table;
+  logId: string;
+  record: Record;
   stageId: string;
-  tree: Record;
-  trees: Table;
+  table: Table;
+  treeId: string;
 };
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -125,25 +121,8 @@ export async function createTree({
 }
 
 // ///////////////////////////////////////////////////////////////////////////
-// 🔶 deleteLog
-// ///////////////////////////////////////////////////////////////////////////
-
-export async function deleteLog({
-  history,
-  log,
-  logs
-}: DeleteLogParams): Promise<void> {
-  // 👇 delete history first
-  const historyIds = getLinkCellIds(log, 'History');
-  history.deleteRecordsAsync(historyIds);
-  // 🔥 need to recursively delete here
-  // const logIds = getLinkCellIds(tree, 'Logs');
-  // logs.deleteRecordsAsync(logIds);
-  await logs.deleteRecordAsync(log);
-}
-
-// ///////////////////////////////////////////////////////////////////////////
 // 🔶 deleteTree
+//    NOTE: sole delete function -- wipes everything associated with tree
 // ///////////////////////////////////////////////////////////////////////////
 
 export async function deleteTree({
@@ -153,15 +132,16 @@ export async function deleteTree({
   trees
 }: DeleteTreeParams): Promise<void> {
   // 👇 delete history first
+  //    NOTE: this will delete ALL history
   const historyIds = getLinkCellIds(tree, 'History');
-  history.deleteRecordsAsync(historyIds);
+  if (historyIds.length > 0) await history.deleteRecordsAsync(historyIds);
   // 🔥 this could be wicked slow
   const logIds = getLinkCellIds(tree, 'Logs');
   for (const logId of logIds) {
     const log = await getRecordById({ recordId: logId, table: logs });
-    await deleteLog({ history, log, logs });
+    // 🔥 need to recursively delete product here
+    await logs.deleteRecordAsync(log);
   }
-  logs.deleteRecordsAsync(logIds);
   // 👇 finally, delete the tree
   await trees.deleteRecordAsync(tree);
 }
@@ -217,33 +197,37 @@ export async function findAndCompleteMilestone({
 }
 
 // ///////////////////////////////////////////////////////////////////////////
-// 🔶 updateTree
+// 🔶 updateRecord
+//    NOTE: Tree, Log
 // ///////////////////////////////////////////////////////////////////////////
 
-export async function updateTree({
+export async function updateRecord({
   date,
   history,
+  logId,
+  record,
   stageId,
-  tree,
-  trees
-}: UpdateTreeParams): Promise<void> {
-  // 👇 first update the tree
-  await trees.updateRecordAsync(tree, {
+  table,
+  treeId
+}: UpdateRecordParams): Promise<void> {
+  // 👇 first update the record
+  await table.updateRecordAsync(record, {
     Stage: [{ id: stageId }]
   });
   // 👇 complete the last milestone
   const milestone = await findAndCompleteMilestone({
     date,
     history,
-    logId: null,
-    record: tree,
-    treeId: tree.id
+    logId,
+    record,
+    treeId
   });
-  // 👇 write the successor mistory
+  // 👇 write the successor history
   await history.createRecordAsync({
     'Date ended': date,
+    'Log': logId ? [{ id: logId }] : null,
     'Precedent': milestone ? [{ id: milestone.id }] : null,
     'Stage': [{ id: stageId }],
-    'Tree': [{ id: tree.id }]
+    'Tree': treeId ? [{ id: treeId }] : null
   });
 }

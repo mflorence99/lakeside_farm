@@ -24,7 +24,7 @@ export default function DeleteTree({ ctx }: TreesAppProps): JSX.Element {
   const disabled = !ctx.tree;
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
-    setForm({ ...form, working: true });
+    setForm({ ...form, isDialogOpen: false, working: true });
     await deleteTree({
       history: ctx.history,
       logs: ctx.logs,

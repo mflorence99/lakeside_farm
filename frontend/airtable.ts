@@ -3,7 +3,8 @@
 export type FieldId = string;
 
 export type LinkRecordId = {
-  id: FieldId;
+  id?: FieldId;
+  linkedRecordId?: FieldId;
   name?: string;
 };
 

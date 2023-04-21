@@ -23,8 +23,7 @@ export function getLinkCellId(
   record: Record,
   fieldOrFieldIdOrFieldName: Field | FieldId | string
 ): string {
-  return getCellValueAsLinkRecordIds(record, fieldOrFieldIdOrFieldName)?.[0]
-    ?.id;
+  return getLinkCellIds(record, fieldOrFieldIdOrFieldName)[0];
 }
 
 // 👇 for links to multiple records
@@ -34,7 +33,7 @@ export function getLinkCellIds(
 ): string[] {
   const values =
     getCellValueAsLinkRecordIds(record, fieldOrFieldIdOrFieldName) ?? [];
-  return values.map((value) => value.id);
+  return values.map((value) => value.id || value.linkedRecordId);
 }
 
 // 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript

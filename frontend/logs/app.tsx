@@ -1,4 +1,4 @@
-import DeleteLog from './delete';
+import ScrapLog from './scrap';
 
 import { Box } from '@airtable/blocks/ui';
 import { Record } from '@airtable/blocks/models';
@@ -56,7 +56,7 @@ export default function TreesApp(): JSX.Element {
   // 👇 build the app
   return (
     <Box>
-      <DeleteLog ctx={ctx} />
+      <ScrapLog ctx={ctx} />
     </Box>
   );
 }

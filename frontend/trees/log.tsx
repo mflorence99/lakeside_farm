@@ -4,7 +4,7 @@ import { createLogs } from '../actions';
 import { getCellValueAsNumber } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { toISOString } from '../helpers';
-import { updateTree } from '../actions';
+import { updateRecord } from '../actions';
 
 import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
@@ -35,13 +35,15 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
   const disabled = numLogs !== 0 || stageId !== ctx.stageBySymbol['HARVESTED'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
-    setForm({ ...form, working: true });
-    await updateTree({
+    setForm({ ...form, isDialogOpen: false, working: true });
+    await updateRecord({
       date: form.date,
       history: ctx.history,
+      logId: null,
+      record: ctx.tree,
       stageId: ctx.stageBySymbol['LOGGED'],
-      tree: ctx.tree,
-      trees: ctx.trees
+      table: ctx.trees,
+      treeId: ctx.tree.id
     });
     await createLogs({
       date: form.date,
