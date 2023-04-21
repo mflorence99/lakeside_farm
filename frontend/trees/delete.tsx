@@ -40,7 +40,7 @@ export default function DeleteTree({ ctx }: TreesAppProps): JSX.Element {
         <ConfirmationDialog
           body={`Tree ${ctx.tree.getCellValueAsString(
             'Name'
-          )} and ALL its associated data will be permanently deleted. Only perform this action in order to clean up test data etc.`}
+          )} and ALL its associated data will be permanently deleted. Only perform this action in order to clean up erroneous data.`}
           isConfirmActionDangerous={true}
           onCancel={(): void => setForm({ ...form, isDialogOpen: false })}
           onConfirm={ok}

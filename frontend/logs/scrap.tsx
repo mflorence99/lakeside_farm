@@ -11,6 +11,7 @@ import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 import { Loader } from '@airtable/blocks/ui';
 
+import { colors } from '@airtable/blocks/ui';
 import { expandRecord } from '@airtable/blocks/ui';
 import { useState } from 'react';
 
@@ -23,7 +24,10 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
     working: false
   });
   const stageId = getLinkCellId(ctx.log, 'Stage');
-  const disabled = stageId !== ctx.stageBySymbol['PRE_MILL'];
+  const disabled = ![
+    ctx.stageBySymbol['PRE_MILL'],
+    ctx.stageBySymbol['MILL']
+  ].includes(stageId);
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -41,8 +45,8 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
   };
   // 👇 build the form
   return (
-    <Box className="divided-box">
-      <Heading>Scrap a log before milling</Heading>
+    <Box>
+      <Heading textColor={colors.RED}>Scrap a log</Heading>
 
       <Box display="flex" justifyContent="space-between">
         <FormField label="Log to scrap" width="auto">
