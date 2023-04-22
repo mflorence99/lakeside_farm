@@ -23,6 +23,7 @@ export type TreesAppContext = {
   allStages: Record[];
   history: Table;
   logs: Table;
+  products: Table;
   species: Table;
   speciesOptions: SelectOption[];
   stageBySymbol: { [symbol: string]: string };
@@ -46,6 +47,7 @@ export default function TreesApp(): JSX.Element {
     allStages: null,
     history: base.getTableByName('History'),
     logs: base.getTableByName('Logs'),
+    products: base.getTableByName('Products'),
     species: base.getTableByName('Species'),
     speciesOptions: null,
     stageBySymbol: null,

@@ -22,6 +22,7 @@ const css = `
 
   .divided-box {
     border-bottom: 1px dotted ${colors.GRAY};
+    margin-bottom: 1rem;
   }
 
   .ok-button {
@@ -49,7 +50,7 @@ export default function LakesideFarmApp(): JSX.Element {
       jsx = <TreesApp />;
       break;
     default:
-      jsx = <Warning text="Switch to Trees, Logs, or Finished Wood table" />;
+      jsx = <Warning text="Switch to Trees, Logs, or Products table" />;
   }
   return <Box padding={2}>{jsx}</Box>;
 }

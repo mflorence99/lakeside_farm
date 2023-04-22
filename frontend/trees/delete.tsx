@@ -21,12 +21,13 @@ export default function DeleteTree({ ctx }: TreesAppProps): JSX.Element {
     isDialogOpen: false,
     working: false
   });
-  const disabled = !ctx.tree;
+  const enabled = ctx.tree;
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
     await deleteTree({
       history: ctx.history,
+      products: ctx.products,
       logs: ctx.logs,
       tree: ctx.tree,
       trees: ctx.trees
@@ -48,7 +49,13 @@ export default function DeleteTree({ ctx }: TreesAppProps): JSX.Element {
         />
       )}
 
-      <Heading textColor={colors.RED}>Delete a tree and ALL its data</Heading>
+      {enabled ? (
+        <Heading>
+          Delete {ctx.tree.getCellValue('Name')} and ALL its data
+        </Heading>
+      ) : (
+        <Heading textColor={colors.GRAY}>Delete tree</Heading>
+      )}
 
       <Box display="flex" justifyContent="space-between">
         <FormField label="Tree to delete" width="auto">
@@ -63,9 +70,9 @@ export default function DeleteTree({ ctx }: TreesAppProps): JSX.Element {
           <Button
             alignSelf="center"
             className="ok-button"
-            disabled={disabled}
+            disabled={!enabled}
             onClick={(): void => setForm({ ...form, isDialogOpen: true })}
-            variant="primary"
+            variant="danger"
           >
             OK
           </Button>

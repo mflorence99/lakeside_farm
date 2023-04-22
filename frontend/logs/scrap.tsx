@@ -24,10 +24,7 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
     working: false
   });
   const stageId = getLinkCellId(ctx.log, 'Stage');
-  const disabled = ![
-    ctx.stageBySymbol['PRE_MILL'],
-    ctx.stageBySymbol['MILL']
-  ].includes(stageId);
+  const enabled = ctx.log && stageId !== ctx.stageBySymbol['SCRAPPED'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -46,7 +43,11 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
   // 👇 build the form
   return (
     <Box>
-      <Heading textColor={colors.RED}>Scrap a log</Heading>
+      {enabled ? (
+        <Heading>Scrap {ctx.log.getCellValue('Name')}</Heading>
+      ) : (
+        <Heading textColor={colors.GRAY}>Scrap a log</Heading>
+      )}
 
       <Box display="flex" justifyContent="space-between">
         <FormField label="Log to scrap" width="auto">
@@ -69,7 +70,7 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
           <Button
             alignSelf="center"
             className="ok-button"
-            disabled={disabled}
+            disabled={!enabled}
             onClick={ok}
             variant="primary"
           >

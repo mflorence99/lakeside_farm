@@ -15,6 +15,7 @@ import { Heading } from '@airtable/blocks/ui';
 import { Input } from '@airtable/blocks/ui';
 import { Loader } from '@airtable/blocks/ui';
 
+import { colors } from '@airtable/blocks/ui';
 import { expandRecord } from '@airtable/blocks/ui';
 import { useState } from 'react';
 
@@ -32,7 +33,8 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
   });
   const numLogs = getCellValueAsNumber(ctx.tree, '# Logs');
   const stageId = getLinkCellId(ctx.tree, 'Stage');
-  const disabled = numLogs !== 0 || stageId !== ctx.stageBySymbol['HARVESTED'];
+  const enabled =
+    ctx.tree && numLogs === 0 && stageId === ctx.stageBySymbol['HARVESTED'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
@@ -69,7 +71,13 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
         />
       )}
 
-      <Heading>Cut a harvested tree into logs</Heading>
+      {enabled ? (
+        <Heading>Cut {ctx.tree.getCellValue('Name')} into logs</Heading>
+      ) : (
+        <Heading textColor={colors.GRAY}>
+          Cut a harvested tree into logs
+        </Heading>
+      )}
 
       <Box>
         <table width="100%">
@@ -140,7 +148,7 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
             <Button
               alignSelf="center"
               className="ok-button"
-              disabled={disabled || !form.diameters[0] || !form.lengths[0]}
+              disabled={!enabled || !form.diameters[0] || !form.lengths[0]}
               onClick={(): void => setForm({ ...form, isDialogOpen: true })}
               variant="primary"
             >

@@ -11,6 +11,7 @@ import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 import { Loader } from '@airtable/blocks/ui';
 
+import { colors } from '@airtable/blocks/ui';
 import { expandRecord } from '@airtable/blocks/ui';
 import { useState } from 'react';
 
@@ -23,7 +24,7 @@ export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
     working: false
   });
   const stageId = getLinkCellId(ctx.tree, 'Stage');
-  const disabled = stageId !== ctx.stageBySymbol['STANDING'];
+  const enabled = ctx.tree && stageId === ctx.stageBySymbol['STANDING'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -42,7 +43,11 @@ export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
   // 👇 build the form
   return (
     <Box className="divided-box">
-      <Heading>Harvest a standing tree</Heading>
+      {enabled ? (
+        <Heading>Harvest {ctx.tree.getCellValue('Name')}</Heading>
+      ) : (
+        <Heading textColor={colors.GRAY}>Harvest a standing tree</Heading>
+      )}
 
       <Box display="flex" justifyContent="space-between">
         <FormField label="Tree to harvest" width="auto">
@@ -65,7 +70,7 @@ export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
           <Button
             alignSelf="center"
             className="ok-button"
-            disabled={disabled}
+            disabled={!enabled}
             onClick={ok}
             variant="primary"
           >

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-rest-params */
 import { getLinkCellId } from './helpers';
 import { getLinkCellIds } from './helpers';
 
@@ -25,6 +26,7 @@ type CreateTreeParams = {
 type DeleteTreeParams = {
   history: Table;
   logs: Table;
+  products: Table;
   tree: Record;
   trees: Table;
 };
@@ -63,6 +65,7 @@ export async function createLogs({
   stageId,
   tree
 }: CreateLogsParams): Promise<void> {
+  console.log('🔶 createLogs', arguments[0]);
   // 👇 complete the last milestone
   const milestone = await findAndCompleteMilestone({
     date,
@@ -106,6 +109,7 @@ export async function createTree({
   stageId,
   trees
 }: CreateTreeParams): Promise<string> {
+  console.log('🔶 createTree', arguments[0]);
   // 👇 first create the tree
   const treeId = await trees.createRecordAsync({
     Species: [{ id: speciesId }],
@@ -128,9 +132,11 @@ export async function createTree({
 export async function deleteTree({
   history,
   logs,
+  products,
   tree,
   trees
 }: DeleteTreeParams): Promise<void> {
+  console.log('🔶 deleteTree', arguments[0]);
   // 👇 delete history first
   //    NOTE: this will delete ALL history
   const historyIds = getLinkCellIds(tree, 'History');
@@ -139,7 +145,16 @@ export async function deleteTree({
   const logIds = getLinkCellIds(tree, 'Logs');
   for (const logId of logIds) {
     const log = await getRecordById({ recordId: logId, table: logs });
-    // 🔥 need to recursively delete product here
+    // 👇 delete each linked product
+    const productIds = getLinkCellIds(log, 'Products');
+    for (const productId of productIds) {
+      const product = await getRecordById({
+        recordId: productId,
+        table: products
+      });
+      await products.deleteRecordAsync(product);
+    }
+    // 👇 delete each linked log
     await logs.deleteRecordAsync(log);
   }
   // 👇 finally, delete the tree
@@ -155,6 +170,7 @@ export async function getRecordById({
   recordId,
   table
 }: GetRecordByIdParams): Promise<Record> {
+  console.log(`🔶 getRecordById from ${table.name}`, arguments[0]);
   const query = await table.selectRecordsAsync();
   const record = query.getRecordByIdIfExists(recordId);
   query.unloadData();
@@ -173,6 +189,7 @@ export async function findAndCompleteMilestone({
   record,
   treeId
 }: FindAndCompleteMilestoneParams): Promise<Record> {
+  console.log('🔶 findAndCompleteMilestone', arguments[0]);
   // 👇 grab the entire history
   const query = await record.selectLinkedRecordsFromCellAsync('History');
   // 👇 find the milestone for this tree, this log
@@ -210,6 +227,7 @@ export async function updateRecord({
   table,
   treeId
 }: UpdateRecordParams): Promise<void> {
+  console.log(`🔶 updateRecord in ${table.name}`, arguments[0]);
   // 👇 first update the record
   await table.updateRecordAsync(record, {
     Stage: [{ id: stageId }]
