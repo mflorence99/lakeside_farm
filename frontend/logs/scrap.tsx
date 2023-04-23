@@ -32,6 +32,7 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
       date: form.date,
       history: ctx.history,
       logId: ctx.log.id,
+      productId: null,
       record: ctx.log,
       stageId: ctx.stageBySymbol['SCRAPPED'],
       table: ctx.logs,
@@ -72,7 +73,7 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
             className="ok-button"
             disabled={!enabled}
             onClick={ok}
-            variant="primary"
+            variant="danger"
           >
             OK
           </Button>

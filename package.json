@@ -5,6 +5,7 @@
   },
   "dependencies": {
     "@airtable/blocks": "1.8.0",
+    "dayjs": "^1.11.7",
     "react": "^16.9.0",
     "react-dom": "^16.9.0"
   },

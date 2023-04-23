@@ -42,6 +42,7 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
       date: form.date,
       history: ctx.history,
       logId: null,
+      productId: null,
       record: ctx.tree,
       stageId: ctx.stageBySymbol['LOGGED'],
       table: ctx.trees,
@@ -64,7 +65,7 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
     <Box className="divided-box">
       {form.isDialogOpen && ctx.tree && (
         <ConfirmationDialog
-          body={`Make sure that the number of logs has been entered correctly. Their length and diameter can be changed later, but new logs can't be added.`}
+          body={`Make sure that the number of logs has been entered correctly. Their dimensions can be changed later, but new logs can't be added.`}
           onCancel={(): void => setForm({ ...form, isDialogOpen: false })}
           onConfirm={ok}
           title="Are you sure?"

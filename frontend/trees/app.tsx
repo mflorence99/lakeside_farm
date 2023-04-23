@@ -3,7 +3,7 @@ import { SelectOption } from '../airtable';
 import CreateTree from './create';
 import DeleteTree from './delete';
 import HarvestTree from './harvest';
-import LogTree from './log';
+import LogTree from './logs';
 
 import { Box } from '@airtable/blocks/ui';
 import { Record } from '@airtable/blocks/models';

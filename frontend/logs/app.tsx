@@ -1,3 +1,4 @@
+import MillLogIntoSlabs from './slabs';
 import ScrapLog from './scrap';
 
 import { Box } from '@airtable/blocks/ui';
@@ -18,6 +19,7 @@ export type LogsAppContext = {
   history: Table;
   log: Record;
   logs: Table;
+  products: Table;
   stageBySymbol: { [symbol: string]: string };
   stages: Table;
 };
@@ -37,6 +39,7 @@ export default function TreesApp(): JSX.Element {
     history: base.getTableByName('History'),
     log: null,
     logs: base.getTableByName('Logs'),
+    products: base.getTableByName('Products'),
     stageBySymbol: null,
     stages: base.getTableByName('Stages')
   };
@@ -56,6 +59,7 @@ export default function TreesApp(): JSX.Element {
   // 👇 build the app
   return (
     <Box>
+      <MillLogIntoSlabs ctx={ctx} />
       <ScrapLog ctx={ctx} />
     </Box>
   );

@@ -32,6 +32,7 @@ export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
       date: form.date,
       history: ctx.history,
       logId: null,
+      productId: null,
       record: ctx.tree,
       stageId: ctx.stageBySymbol['HARVESTED'],
       table: ctx.trees,
