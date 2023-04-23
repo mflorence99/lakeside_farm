@@ -49,7 +49,7 @@ export default function CreateTree({ ctx }: TreesAppProps): JSX.Element {
       <Heading>Identify a standing tree</Heading>
 
       <Box display="flex" justifyContent="space-between">
-        <FormField label="Species" width="auto">
+        <FormField label="Species" width="33%">
           <Select
             onChange={(v: string): void => setForm({ ...form, speciesId: v })}
             options={[dfltSpecies, ...ctx.speciesOptions]}

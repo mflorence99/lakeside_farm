@@ -129,11 +129,13 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
         <br />
 
         <Box display="flex" justifyContent="space-between">
-          <FormField label="Tree to log" width="auto">
-            <CellRenderer
-              field={ctx.trees.getFieldByName('Name')}
-              record={ctx.tree}
-            />
+          <FormField label="Tree to log" width="33%">
+            {enabled && (
+              <CellRenderer
+                field={ctx.trees.getFieldByName('Name')}
+                record={ctx.tree}
+              />
+            )}
           </FormField>
           <FormField label="When logged" width="auto">
             <input

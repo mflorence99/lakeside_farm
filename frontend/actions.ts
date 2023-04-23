@@ -143,7 +143,6 @@ export async function createMilestone({
   console.log('🔶 createMilestone', arguments[0]);
   return await history.createRecordAsync({
     'Date ended': date,
-    'Date started (Gantt)': date,
     'Date ended (Gantt)': date,
     'Log': logId ? [{ id: logId }] : null,
     'Product': productId ? [{ id: productId }] : null,
@@ -171,6 +170,7 @@ export async function createLogs({
     if (lengths[ix]) {
       // 👇 first create the log
       const logId = await logs.createRecordAsync({
+        'Date staged': date,
         'Diameter': diameters[ix],
         'Length': lengths[ix],
         'Log ID': ix + 1,
@@ -213,10 +213,11 @@ export async function createProducts({
     if (thicknesses[ix]) {
       // 👇 first create the product
       const common = {
-        Log: [{ id: log.id }],
-        Stage: [{ id: stageId }],
-        Thickness: thicknesses[ix],
-        Type: { name: type }
+        'Date staged': date,
+        'Log': [{ id: log.id }],
+        'Stage': [{ id: stageId }],
+        'Thickness': thicknesses[ix],
+        'Type': { name: type }
       };
       let productId;
       if (type === 'Board')
@@ -259,8 +260,9 @@ export async function createTree({
   console.log('🔶 createTree', arguments[0]);
   // 👇 first create the tree
   const treeId = await trees.createRecordAsync({
-    Species: [{ id: speciesId }],
-    Stage: [{ id: stageId }]
+    'Date staged': date,
+    'Species': [{ id: speciesId }],
+    'Stage': [{ id: stageId }]
   });
   // 👇 then initialize its history
   await createMilestone({
@@ -345,7 +347,8 @@ export async function updateRecord({
   console.log(`🔶 updateRecord in ${table.name}`, arguments[0]);
   // 👇 first update the record
   await table.updateRecordAsync(record, {
-    Stage: [{ id: stageId }]
+    'Date staged': date,
+    'Stage': [{ id: stageId }]
   });
   // 👇 complete the last milestone
   await completeMilestone({

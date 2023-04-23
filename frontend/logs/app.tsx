@@ -1,4 +1,4 @@
-import MillLogIntoSlabs from './slabs';
+import MillLog from './slabs';
 import ScrapLog from './scrap';
 
 import { Box } from '@airtable/blocks/ui';
@@ -26,6 +26,7 @@ export type LogsAppContext = {
 
 export type LogsAppProps = {
   ctx: LogsAppContext;
+  productType?: string;
 };
 
 export default function TreesApp(): JSX.Element {
@@ -59,7 +60,8 @@ export default function TreesApp(): JSX.Element {
   // 👇 build the app
   return (
     <Box>
-      <MillLogIntoSlabs ctx={ctx} />
+      <MillLog ctx={ctx} productType="Slab" />
+      <MillLog ctx={ctx} productType="Board" />
       <ScrapLog ctx={ctx} />
     </Box>
   );

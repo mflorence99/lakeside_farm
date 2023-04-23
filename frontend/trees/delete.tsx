@@ -58,11 +58,13 @@ export default function DeleteTree({ ctx }: TreesAppProps): JSX.Element {
       )}
 
       <Box display="flex" justifyContent="space-between">
-        <FormField label="Tree to delete" width="auto">
-          <CellRenderer
-            field={ctx.trees.getFieldByName('Name')}
-            record={ctx.tree}
-          />
+        <FormField label="Tree to delete" width="33%">
+          {enabled && (
+            <CellRenderer
+              field={ctx.trees.getFieldByName('Name')}
+              record={ctx.tree}
+            />
+          )}
         </FormField>
         {form.working ? (
           <Loader alignSelf="center" className="spinner" scale={0.3} />

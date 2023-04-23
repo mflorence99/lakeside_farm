@@ -19,10 +19,17 @@ import React from 'react';
 
 export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
   // 👇 prepare the form
+  const dateStaged = ctx.tree?.getCellValue('Date staged') as string;
+  console.log('#1', dateStaged);
   const [form, setForm] = useState({
-    date: toISOString(new Date()),
+    date: toISOString(
+      ctx.tree
+        ? new Date(ctx.tree.getCellValue('Date staged') as string)
+        : new Date()
+    ),
     working: false
   });
+  console.log('#2', form.date);
   const stageId = getLinkCellId(ctx.tree, 'Stage');
   const enabled = ctx.tree && stageId === ctx.stageBySymbol['STANDING'];
   // 👇 when OK is clicked
@@ -51,11 +58,13 @@ export default function HarvestTree({ ctx }: TreesAppProps): JSX.Element {
       )}
 
       <Box display="flex" justifyContent="space-between">
-        <FormField label="Tree to harvest" width="auto">
-          <CellRenderer
-            field={ctx.trees.getFieldByName('Name')}
-            record={ctx.tree}
-          />
+        <FormField label="Tree to harvest" width="33%">
+          {enabled && (
+            <CellRenderer
+              field={ctx.trees.getFieldByName('Name')}
+              record={ctx.tree}
+            />
+          )}
         </FormField>
         <FormField label="When harvested" width="auto">
           <input

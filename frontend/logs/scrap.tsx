@@ -1,5 +1,6 @@
 import { LogsAppProps } from './app';
 
+import { getCellValueAsNumber } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { toISOString } from '../helpers';
 import { updateRecord } from '../actions';
@@ -23,8 +24,14 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
     date: toISOString(new Date()),
     working: false
   });
+  const numBoards = getCellValueAsNumber(ctx.log, '# Boards');
+  const numSlabs = getCellValueAsNumber(ctx.log, '# Slabs');
   const stageId = getLinkCellId(ctx.log, 'Stage');
-  const enabled = ctx.log && stageId !== ctx.stageBySymbol['SCRAPPED'];
+  const enabled =
+    numBoards === 0 &&
+    numSlabs === 0 &&
+    ctx.log &&
+    stageId === ctx.stageBySymbol['PRE_MILL'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -51,11 +58,13 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
       )}
 
       <Box display="flex" justifyContent="space-between">
-        <FormField label="Log to scrap" width="auto">
-          <CellRenderer
-            field={ctx.logs.getFieldByName('Name')}
-            record={ctx.log}
-          />
+        <FormField label="Log to scrap" width="33%">
+          {enabled && (
+            <CellRenderer
+              field={ctx.logs.getFieldByName('Name')}
+              record={ctx.log}
+            />
+          )}
         </FormField>
         <FormField label="When scrapped" width="auto">
           <input
