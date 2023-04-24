@@ -3,7 +3,6 @@ import { AppProps } from '../app';
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
-import { getCellValueForHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
@@ -24,7 +23,6 @@ export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
     date: forHTMLDatetime(new Date()),
-    dateClamped: false,
     working: false
   });
   const numBoards = getCellValueAsNumber(data.log, fld.NUM_BOARDS);
@@ -35,12 +33,6 @@ export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
     numSlabs === 0 &&
     data.log &&
     stageId === data.stageBySymbol['PRE_MILL'];
-  // 👇 can't set a date before the last staged date
-  if (enabled && !form.dateClamped) {
-    const dateStaged = getCellValueForHTMLDatetime(data.log, fld.DATE_STAGED);
-    if (form.date < dateStaged)
-      setForm({ ...form, date: dateStaged, dateClamped: true });
-  }
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });

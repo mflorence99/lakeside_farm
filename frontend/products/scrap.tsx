@@ -2,7 +2,6 @@ import { AppProps } from '../app';
 
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
-import { getCellValueAsNumber } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
@@ -19,50 +18,45 @@ import { useState } from 'react';
 
 import React from 'react';
 
-export default function ScrapTree({ ctx, data }: AppProps): JSX.Element {
+export default function ScrapProduct({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
     date: forHTMLDatetime(new Date()),
     working: false
   });
-  const numLogs = getCellValueAsNumber(data.tree, fld.NUM_LOGS);
-  const stageId = getLinkCellId(data.tree, fld.STAGE);
-  const enabled =
-    numLogs === 0 &&
-    data.tree &&
-    (stageId === data.stageBySymbol['STANDING'] ||
-      stageId === data.stageBySymbol['HARVESTED']);
+  const stageId = getLinkCellId(data.product, fld.STAGE);
+  const enabled = data.product && stageId === data.stageBySymbol['PRE_DRY'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
     await updateRecord({
       date: form.date,
       history: ctx.HISTORY,
-      logId: '',
-      productId: '',
-      record: data.tree,
+      logId: data.log.getCellValueAsString(fld.LOG_ID),
+      productId: data.product.getCellValueAsString(fld.PRODUCT_ID),
+      record: data.product,
       stageId: data.stageBySymbol['SCRAPPED'],
-      table: ctx.TREES,
+      table: ctx.PRODUCTS,
       tree: data.tree
     });
-    expandRecord(data.tree);
+    expandRecord(data.product);
     setForm({ ...form, working: false });
   };
   // 👇 build the form
   return (
     <Box>
       {enabled ? (
-        <Heading>Scrap {data.tree.getCellValue(fld.NAME)}</Heading>
+        <Heading>Scrap {data.product.getCellValue(fld.NAME)}</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Scrap a tree</Heading>
+        <Heading textColor={colors.GRAY}>Scrap a product</Heading>
       )}
 
       <Box display="flex" justifyContent="space-between">
-        <FormField label="Tree to scrap" width="33%">
+        <FormField label="Log to scrap" width="33%">
           {enabled && (
             <CellRenderer
-              field={ctx.TREES.getFieldByName(fld.NAME)}
-              record={data.tree}
+              field={ctx.PRODUCTS.getFieldByName(fld.NAME)}
+              record={data.product}
             />
           )}
         </FormField>

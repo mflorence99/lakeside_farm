@@ -7,6 +7,7 @@ import { fld } from './constants';
 import { tbl } from './constants';
 
 import LogsApp from './logs/app';
+import ProductsApp from './products/app';
 import TreesApp from './trees/app';
 
 import { Box } from '@airtable/blocks/ui';
@@ -97,6 +98,9 @@ function Sane(): JSX.Element {
   switch (table?.name) {
     case tbl.LOGS:
       jsx = <LogsApp ctx={ctx} data={data} />;
+      break;
+    case tbl.PRODUCTS:
+      jsx = <ProductsApp ctx={ctx} data={data} />;
       break;
     case tbl.TREES:
       jsx = <TreesApp ctx={ctx} data={data} />;

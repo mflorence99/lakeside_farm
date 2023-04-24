@@ -3,7 +3,6 @@ import { AppProps } from '../app';
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
-import { getCellValueForHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
@@ -24,20 +23,12 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
     date: forHTMLDatetime(new Date()),
-    dateClamped: false,
     working: false
   });
   const numLogs = getCellValueAsNumber(data.tree, fld.NUM_LOGS);
   const stageId = getLinkCellId(data.tree, fld.STAGE);
   const enabled =
     numLogs === 0 && data.tree && stageId === data.stageBySymbol['STANDING'];
-  // 👇 can't set a date before the last staged date
-  if (enabled && !form.dateClamped) {
-    const dateStaged = getCellValueForHTMLDatetime(data.tree, fld.DATE_STAGED);
-    // console.log({ form: form.date, dateStaged, clamped: form.dateClamped });
-    if (form.date < dateStaged)
-      setForm({ ...form, date: dateStaged, dateClamped: true });
-  }
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });

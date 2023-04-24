@@ -4,7 +4,6 @@ import { createProducts } from '../actions';
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
-import { getCellValueForHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
@@ -33,7 +32,6 @@ export default function MillLog({
   const [form, setForm] = useState({
     counts: new Array(productIndex.length).fill(''),
     date: forHTMLDatetime(new Date()),
-    dateClamped: false,
     isDialogOpen: false,
     maxWidths: new Array(productIndex.length).fill(''),
     minWidths: new Array(productIndex.length).fill(''),
@@ -51,12 +49,6 @@ export default function MillLog({
     (stageId === data.stageBySymbol['PRE_MILL'] ||
       stageId === data.stageBySymbol['MILLED']);
 
-  // 👇 can't set a date before the last staged date
-  if (enabled && !form.dateClamped) {
-    const dateStaged = getCellValueForHTMLDatetime(data.log, fld.DATE_STAGED);
-    if (form.date < dateStaged)
-      setForm({ ...form, date: dateStaged, dateClamped: true });
-  }
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
@@ -79,7 +71,7 @@ export default function MillLog({
       maxWidths: form.maxWidths,
       minWidths: form.minWidths,
       products: ctx.PRODUCTS,
-      stageId: data.stageBySymbol['POST_MILL'],
+      stageId: data.stageBySymbol['PRE_DRY'],
       thicknesses: form.thicknesses,
       tree: data.tree,
       type: productType,
