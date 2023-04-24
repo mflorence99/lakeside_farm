@@ -1,8 +1,10 @@
-import { LogsAppProps } from './app';
+import { AppProps } from '../app';
 
+import { fld } from '../constants';
+import { forHTMLDatetime } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
+import { getCellValueForHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
-import { toISOString } from '../helpers';
 import { updateRecord } from '../actions';
 
 import { Box } from '@airtable/blocks/ui';
@@ -18,41 +20,48 @@ import { useState } from 'react';
 
 import React from 'react';
 
-export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
+export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: toISOString(new Date()),
+    date: forHTMLDatetime(new Date()),
+    dateClamped: false,
     working: false
   });
-  const numBoards = getCellValueAsNumber(ctx.log, '# Boards');
-  const numSlabs = getCellValueAsNumber(ctx.log, '# Slabs');
-  const stageId = getLinkCellId(ctx.log, 'Stage');
+  const numBoards = getCellValueAsNumber(data.log, fld.NUM_BOARDS);
+  const numSlabs = getCellValueAsNumber(data.log, fld.NUM_SLABS);
+  const stageId = getLinkCellId(data.log, fld.STAGE);
   const enabled =
     numBoards === 0 &&
     numSlabs === 0 &&
-    ctx.log &&
-    stageId === ctx.stageBySymbol['PRE_MILL'];
+    data.log &&
+    stageId === data.stageBySymbol['PRE_MILL'];
+  // 👇 can't set a date before the last staged date
+  if (enabled && !form.dateClamped) {
+    const dateStaged = getCellValueForHTMLDatetime(data.log, fld.DATE_STAGED);
+    if (form.date < dateStaged)
+      setForm({ ...form, date: dateStaged, dateClamped: true });
+  }
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
     await updateRecord({
       date: form.date,
-      history: ctx.history,
-      logId: ctx.log.id,
-      productId: null,
-      record: ctx.log,
-      stageId: ctx.stageBySymbol['SCRAPPED'],
-      table: ctx.logs,
-      treeId: getLinkCellId(ctx.log, 'Tree ID')
+      history: ctx.HISTORY,
+      logId: data.log.getCellValueAsString(fld.LOG_ID),
+      productId: '',
+      record: data.log,
+      stageId: data.stageBySymbol['SCRAPPED'],
+      table: ctx.LOGS,
+      tree: data.tree
     });
-    expandRecord(ctx.log);
+    expandRecord(data.log);
     setForm({ ...form, working: false });
   };
   // 👇 build the form
   return (
     <Box>
       {enabled ? (
-        <Heading>Scrap {ctx.log.getCellValue('Name')}</Heading>
+        <Heading>Scrap {data.log.getCellValue(fld.NAME)}</Heading>
       ) : (
         <Heading textColor={colors.GRAY}>Scrap a log</Heading>
       )}
@@ -61,8 +70,8 @@ export default function ScrapLog({ ctx }: LogsAppProps): JSX.Element {
         <FormField label="Log to scrap" width="33%">
           {enabled && (
             <CellRenderer
-              field={ctx.logs.getFieldByName('Name')}
-              record={ctx.log}
+              field={ctx.LOGS.getFieldByName(fld.NAME)}
+              record={data.log}
             />
           )}
         </FormField>

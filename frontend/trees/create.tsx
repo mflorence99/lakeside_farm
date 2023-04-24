@@ -1,8 +1,8 @@
-import { TreesAppProps } from './app';
+import { AppProps } from '../app';
 
 import { createTree } from '../actions';
+import { forHTMLDatetime } from '../helpers';
 import { getRecordById } from '../actions';
-import { toISOString } from '../helpers';
 
 import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
@@ -16,29 +16,29 @@ import { useState } from 'react';
 
 import React from 'react';
 
-export default function CreateTree({ ctx }: TreesAppProps): JSX.Element {
+export default function CreateTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: toISOString(new Date()),
+    date: forHTMLDatetime(new Date()),
     speciesId: null,
     working: false
   });
   const dfltSpecies = { label: 'Pick one', value: null };
-  const stageId = ctx.stageBySymbol['STANDING'];
+  const stageId = data.stageBySymbol['STANDING'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
     const treeId = await createTree({
       date: form.date,
-      history: ctx.history,
+      history: ctx.HISTORY,
       speciesId: form.speciesId,
       stageId,
-      trees: ctx.trees
+      trees: ctx.TREES
     });
     expandRecord(
       await getRecordById({
         recordId: treeId,
-        table: ctx.trees
+        table: ctx.TREES
       })
     );
     setForm({ ...form, working: false });
@@ -52,7 +52,7 @@ export default function CreateTree({ ctx }: TreesAppProps): JSX.Element {
         <FormField label="Species" width="33%">
           <Select
             onChange={(v: string): void => setForm({ ...form, speciesId: v })}
-            options={[dfltSpecies, ...ctx.speciesOptions]}
+            options={[dfltSpecies, ...data.speciesOptions]}
             value={form.speciesId}
           />
         </FormField>

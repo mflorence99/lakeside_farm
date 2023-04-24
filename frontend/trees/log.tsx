@@ -1,9 +1,11 @@
-import { TreesAppProps } from './app';
+import { AppProps } from '../app';
 
 import { createLogs } from '../actions';
+import { fld } from '../constants';
+import { forHTMLDatetime } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
+import { getCellValueForHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
-import { toISOString } from '../helpers';
 import { updateRecord } from '../actions';
 
 import { Box } from '@airtable/blocks/ui';
@@ -21,49 +23,56 @@ import { useState } from 'react';
 
 import React from 'react';
 
-export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
+export default function LogTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const logIndex = [0, 1, 2, 3, 4];
   const [form, setForm] = useState({
-    date: toISOString(new Date()),
+    date: forHTMLDatetime(new Date()),
+    dateClamped: false,
     diameters: new Array(logIndex.length).fill(''),
     isDialogOpen: false,
     lengths: new Array(logIndex.length).fill(''),
     working: false
   });
-  const numLogs = getCellValueAsNumber(ctx.tree, '# Logs');
-  const stageId = getLinkCellId(ctx.tree, 'Stage');
+  const numLogs = getCellValueAsNumber(data.tree, fld.NUM_LOGS);
+  const stageId = getLinkCellId(data.tree, fld.STAGE);
   const enabled =
-    ctx.tree && numLogs === 0 && stageId === ctx.stageBySymbol['HARVESTED'];
+    numLogs === 0 && data.tree && stageId === data.stageBySymbol['HARVESTED'];
+  // 👇 can't set a date before the last staged date
+  if (enabled && !form.dateClamped) {
+    const dateStaged = getCellValueForHTMLDatetime(data.tree, fld.DATE_STAGED);
+    if (form.date < dateStaged)
+      setForm({ ...form, date: dateStaged, dateClamped: true });
+  }
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
     await updateRecord({
       date: form.date,
-      history: ctx.history,
-      logId: null,
-      productId: null,
-      record: ctx.tree,
-      stageId: ctx.stageBySymbol['LOGGED'],
-      table: ctx.trees,
-      treeId: ctx.tree.id
+      history: ctx.HISTORY,
+      logId: '',
+      productId: '',
+      record: data.tree,
+      stageId: data.stageBySymbol['LOGGED'],
+      table: ctx.TREES,
+      tree: data.tree
     });
     await createLogs({
       date: form.date,
       diameters: form.diameters,
-      history: ctx.history,
+      history: ctx.HISTORY,
       lengths: form.lengths,
-      logs: ctx.logs,
-      stageId: ctx.stageBySymbol['PRE_MILL'],
-      tree: ctx.tree
+      logs: ctx.LOGS,
+      stageId: data.stageBySymbol['PRE_MILL'],
+      tree: data.tree
     });
-    expandRecord(ctx.tree);
+    expandRecord(data.tree);
     setForm({ ...form, isDialogOpen: false, working: false });
   };
   // 👇 build the form
   return (
     <Box className="divided-box">
-      {form.isDialogOpen && ctx.tree && (
+      {form.isDialogOpen && data.tree && (
         <ConfirmationDialog
           body={`Make sure that the number of logs has been entered correctly. Their dimensions can be changed later, but new logs can't be added.`}
           onCancel={(): void => setForm({ ...form, isDialogOpen: false })}
@@ -73,7 +82,7 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
       )}
 
       {enabled ? (
-        <Heading>Cut {ctx.tree.getCellValue('Name')} into logs</Heading>
+        <Heading>Cut {data.tree.getCellValue(fld.NAME)} into logs</Heading>
       ) : (
         <Heading textColor={colors.GRAY}>
           Cut a harvested tree into logs
@@ -132,8 +141,8 @@ export default function LogTree({ ctx }: TreesAppProps): JSX.Element {
           <FormField label="Tree to log" width="33%">
             {enabled && (
               <CellRenderer
-                field={ctx.trees.getFieldByName('Name')}
-                record={ctx.tree}
+                field={ctx.TREES.getFieldByName(fld.NAME)}
+                record={data.tree}
               />
             )}
           </FormField>

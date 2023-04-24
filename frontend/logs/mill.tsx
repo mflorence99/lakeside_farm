@@ -1,9 +1,11 @@
 import { LogsAppProps } from './app';
 
 import { createProducts } from '../actions';
+import { fld } from '../constants';
+import { forHTMLDatetime } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
+import { getCellValueForHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
-import { toISOString } from '../helpers';
 import { updateRecord } from '../actions';
 
 import { Box } from '@airtable/blocks/ui';
@@ -23,13 +25,15 @@ import React from 'react';
 
 export default function MillLog({
   ctx,
+  data,
   productType
 }: LogsAppProps): JSX.Element {
   // 👇 prepare the form
   const productIndex = [0, 1, 2, 3, 4];
   const [form, setForm] = useState({
     counts: new Array(productIndex.length).fill(''),
-    date: toISOString(new Date()),
+    date: forHTMLDatetime(new Date()),
+    dateClamped: false,
     isDialogOpen: false,
     maxWidths: new Array(productIndex.length).fill(''),
     minWidths: new Array(productIndex.length).fill(''),
@@ -37,52 +41,61 @@ export default function MillLog({
     widths: new Array(productIndex.length).fill(''),
     working: false
   });
-  const numBoards = getCellValueAsNumber(ctx.log, '# Boards');
-  const numSlabs = getCellValueAsNumber(ctx.log, '# Slabs');
-  const stageId = getLinkCellId(ctx.log, 'Stage');
+  const numBoards = getCellValueAsNumber(data.log, fld.NUM_BOARDS);
+  const numSlabs = getCellValueAsNumber(data.log, fld.NUM_SLABS);
+  const stageId = getLinkCellId(data.log, fld.STAGE);
   const enabled =
     ((numBoards === 0 && productType === 'Board') ||
       (numSlabs === 0 && productType === 'Slab')) &&
-    ctx.log &&
-    [ctx.stageBySymbol['PRE_MILL'], ctx.stageBySymbol['MILL']].includes(
-      stageId
-    );
-  let tag;
-  if (productType === 'Board') tag = 'boards';
-  else if (productType === 'Slab') tag = 'slabs';
+    data.log &&
+    (stageId === data.stageBySymbol['PRE_MILL'] ||
+      stageId === data.stageBySymbol['MILLED']);
+
+  // 👇 can't set a date before the last staged date
+  if (enabled && !form.dateClamped) {
+    const dateStaged = getCellValueForHTMLDatetime(data.log, fld.DATE_STAGED);
+    if (form.date < dateStaged)
+      setForm({ ...form, date: dateStaged, dateClamped: true });
+  }
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
     await updateRecord({
       date: form.date,
-      history: ctx.history,
-      logId: ctx.log.id,
-      productId: null,
-      record: ctx.log,
-      stageId: ctx.stageBySymbol['MILL'],
-      table: ctx.logs,
-      treeId: getLinkCellId(ctx.log, 'Tree')
+      history: ctx.HISTORY,
+      logId: data.log.getCellValueAsString(fld.LOG_ID),
+      productId: '',
+      record: data.log,
+      stageId: data.stageBySymbol['MILLED'],
+      table: ctx.LOGS,
+      tree: data.tree
     });
     await createProducts({
       counts: form.counts,
       date: form.date,
-      history: ctx.history,
-      log: ctx.log,
+      history: ctx.HISTORY,
+      log: data.log,
+      logId: data.log.getCellValueAsString(fld.LOG_ID),
       maxWidths: form.maxWidths,
       minWidths: form.minWidths,
-      products: ctx.products,
-      stageId: ctx.stageBySymbol['POST_MILL'],
+      products: ctx.PRODUCTS,
+      stageId: data.stageBySymbol['POST_MILL'],
       thicknesses: form.thicknesses,
+      tree: data.tree,
       type: productType,
       widths: form.widths
     });
-    expandRecord(ctx.log);
+    expandRecord(data.log);
     setForm({ ...form, isDialogOpen: false, working: false });
   };
+  // 👇 YUCK! the tag we'll use in the ConfirmationDialog
+  let tag;
+  if (productType === 'Board') tag = 'boards';
+  else if (productType === 'Slab') tag = 'slabs';
   // 👇 build the form
   return (
     <Box className="divided-box">
-      {form.isDialogOpen && ctx.log && (
+      {form.isDialogOpen && data.log && (
         <ConfirmationDialog
           body={`Make sure that the number of ${tag} has been entered correctly. Their dimensions can be changed later, but new ${tag} can't be added.`}
           onCancel={(): void => setForm({ ...form, isDialogOpen: false })}
@@ -93,7 +106,7 @@ export default function MillLog({
 
       {enabled ? (
         <Heading>
-          Mill {tag} from {ctx.log.getCellValue('Name')}
+          Mill {tag} from {data.log.getCellValue(fld.NAME)}
         </Heading>
       ) : (
         <Heading textColor={colors.GRAY}>Mill log into {tag}</Heading>
@@ -242,8 +255,8 @@ export default function MillLog({
           <FormField label="Log to mill" width="33%">
             {enabled && (
               <CellRenderer
-                field={ctx.logs.getFieldByName('Name')}
-                record={ctx.log}
+                field={ctx.LOGS.getFieldByName('Name')}
+                record={data.log}
               />
             )}
           </FormField>

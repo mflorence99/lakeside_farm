@@ -1,7 +1,6 @@
 /* eslint-disable prefer-rest-params */
-import { fld } from './constants';
-import { getCellValueAsDayjs } from './helpers';
 import { getLinkCellId } from './helpers';
+import { getLinkCellIds } from './helpers';
 
 import * as dayjs from 'dayjs';
 
@@ -13,7 +12,8 @@ type CompleteMilestoneParams = {
   history: Table;
   logId: string;
   productId: string;
-  tree: Record;
+  record: Record;
+  treeId: string;
 };
 
 type CreateLogsParams = {
@@ -40,13 +40,11 @@ type CreateProductsParams = {
   date: string;
   history: Table;
   log: Record;
-  logId: string;
   maxWidths: number[];
   minWidths: number[];
   products: Table;
   stageId: string;
   thicknesses: number[];
-  tree: Record;
   type: string;
   widths: number[];
 };
@@ -56,6 +54,14 @@ type CreateTreeParams = {
   history: Table;
   speciesId: string;
   stageId: string;
+  trees: Table;
+};
+
+type DeleteTreeParams = {
+  history: Table;
+  logs: Table;
+  products: Table;
+  tree: Record;
   trees: Table;
 };
 
@@ -69,7 +75,7 @@ type UpdateRecordParams = {
   record: Record;
   stageId: string;
   table: Table;
-  tree: Record;
+  treeId: string;
 };
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -81,25 +87,29 @@ export async function completeMilestone({
   history,
   logId,
   productId,
-  tree
+  record,
+  treeId
 }: CompleteMilestoneParams): Promise<Record> {
   console.log('🔶 completeMilestone', arguments[0]);
-  // 👇 the entire history is linked to the tree
-  const query = await tree.selectLinkedRecordsFromCellAsync(fld.HISTORY);
+  // 👇 grab the entire history
+  const query = await record.selectLinkedRecordsFromCellAsync('History');
   // 👇 find the milestone for this tree, this log, this product
   const milestone = query.records.find((history) => {
-    const matchesLog = logId === history.getCellValueAsString(fld.LOG_ID);
+    const matchesLog =
+      (!logId && !getLinkCellId(history, 'Log')) ||
+      logId === getLinkCellId(history, 'Log');
     const matchesProduct =
-      productId === history.getCellValueAsString(fld.PRODUCT_ID);
-    const matchesTree = tree.id === getLinkCellId(history, fld.TREE);
-    const notStarted = !history.getCellValue(fld.DATE_STARTED);
+      (!productId && !getLinkCellId(history, 'Product')) ||
+      productId === getLinkCellId(history, 'Product');
+    const matchesTree = treeId === getLinkCellId(history, 'Tree');
+    const notStarted = !history.getCellValue('Date started');
     return matchesLog && matchesProduct && matchesTree && notStarted;
   });
   // 👇 if the milestone was found, complete it
   //    to satisfy the Gantt chart, we move the end date back one day
   //    to avoid overlap on the chart
   if (milestone) {
-    const ganttStart = getCellValueAsDayjs(milestone, fld.DATE_ENDED);
+    const ganttStart = dayjs(String(milestone.getCellValue('Date ended')));
     let ganttEnd = dayjs(date);
     const sameDay = ganttStart.isSame(ganttEnd, 'day');
     if (!sameDay) ganttEnd = ganttEnd.subtract(1, 'day');
@@ -107,15 +117,38 @@ export async function completeMilestone({
     //   `ganttStart=${ganttStart.toISOString()} ganttEnd=${ganttEnd.toISOString()} sameDay=${sameDay}`
     // );
     await history.updateRecordAsync(milestone, {
-      [fld.DATE_STARTED]: milestone.getCellValue(fld.DATE_ENDED),
-      [fld.DATE_ENDED]: date,
-      [fld.DATE_STARTED_GANTT]: ganttStart.toISOString(),
-      [fld.DATE_ENDED_GANTT]: ganttEnd.toISOString()
+      'Date started': milestone.getCellValue('Date ended'),
+      'Date ended': date,
+      'Date started (Gantt)': ganttStart.toISOString(),
+      'Date ended (Gantt)': ganttEnd.toISOString()
     });
   }
   // 👇 done with history data
   query.unloadData();
   return milestone;
+}
+
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 createMilestone
+// ///////////////////////////////////////////////////////////////////////////
+
+export async function createMilestone({
+  date,
+  history,
+  logId,
+  productId,
+  stageId,
+  treeId
+}: CreateMilestoneParams): Promise<string> {
+  console.log('🔶 createMilestone', arguments[0]);
+  return await history.createRecordAsync({
+    'Date ended': date,
+    'Date ended (Gantt)': date,
+    'Log': logId ? [{ id: logId }] : null,
+    'Product': productId ? [{ id: productId }] : null,
+    'Stage': [{ id: stageId }],
+    'Tree': treeId ? [{ id: treeId }] : null
+  });
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -136,49 +169,25 @@ export async function createLogs({
   for (let ix = 0; ix < lengths.length; ix++) {
     if (lengths[ix]) {
       // 👇 first create the log
-      const logId = `${ix + 1}`;
-      await logs.createRecordAsync({
-        [fld.DATE_STAGED]: date,
-        [fld.DIAMETER]: diameters[ix],
-        [fld.LENGTH]: lengths[ix],
-        [fld.LOG_ID]: logId,
-        [fld.STAGE]: [{ id: stageId }],
-        [fld.TREE]: [{ id: tree.id }]
+      const logId = await logs.createRecordAsync({
+        'Date staged': date,
+        'Diameter': diameters[ix],
+        'Length': lengths[ix],
+        'Log ID': ix + 1,
+        'Stage': [{ id: stageId }],
+        'Tree': [{ id: tree.id }]
       });
       // 👇 then initialize its history
       await createMilestone({
         date,
         history,
         logId,
-        productId: '',
+        productId: null,
         stageId,
         treeId: tree.id
       });
     }
   }
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-// 🔶 createMilestone
-// ///////////////////////////////////////////////////////////////////////////
-
-export async function createMilestone({
-  date,
-  history,
-  logId,
-  productId,
-  stageId,
-  treeId
-}: CreateMilestoneParams): Promise<string> {
-  console.log('🔶 createMilestone', arguments[0]);
-  return await history.createRecordAsync({
-    [fld.DATE_ENDED]: date,
-    [fld.DATE_ENDED_GANTT]: date,
-    [fld.LOG_ID]: logId,
-    [fld.PRODUCT_ID]: productId,
-    [fld.STAGE]: [{ id: stageId }],
-    [fld.TREE]: [{ id: treeId }]
-  });
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -190,13 +199,11 @@ export async function createProducts({
   date,
   history,
   log,
-  logId,
   maxWidths,
   minWidths,
   products,
   stageId,
   thicknesses,
-  tree,
   type,
   widths
 }: CreateProductsParams): Promise<void> {
@@ -206,38 +213,34 @@ export async function createProducts({
     if (thicknesses[ix]) {
       // 👇 first create the product
       const common = {
-        [fld.DATE_STAGED]: date,
-        [fld.LOG]: [{ id: log.id }],
-        [fld.STAGE]: [{ id: stageId }],
-        [fld.THICKNESS]: thicknesses[ix],
-        [fld.TYPE]: { name: type }
+        'Date staged': date,
+        'Log': [{ id: log.id }],
+        'Stage': [{ id: stageId }],
+        'Thickness': thicknesses[ix],
+        'Type': { name: type }
       };
       let productId;
-      if (type === 'Board') {
-        productId = `${thicknesses[ix]}x${widths[ix]}`;
-        await products.createRecordAsync({
+      if (type === 'Board')
+        productId = await products.createRecordAsync({
           ...common,
-          [fld.BOARD_COUNT]: counts[ix],
-          [fld.BOARD_WIDTH]: widths[ix]
+          'Board count': counts[ix],
+          'Board width': widths[ix]
         });
-      } else if (type === 'Slab') {
-        const slabId = `${ix + 1}`;
-        productId = slabId;
-        await products.createRecordAsync({
+      else if (type === 'Slab')
+        productId = await products.createRecordAsync({
           ...common,
-          [fld.SLAB_ID]: slabId,
-          [fld.SLAB_MAX_WIDTH]: maxWidths[ix],
-          [fld.SLAB_MIN_WIDTH]: minWidths[ix]
+          'Slab ID': ix + 1,
+          'Slab max width': maxWidths[ix],
+          'Slab min width': minWidths[ix]
         });
-      }
       // 👇 then initialize its history
       await createMilestone({
         date,
         history,
-        logId,
+        logId: log.id,
         productId,
         stageId,
-        treeId: tree.id
+        treeId: getLinkCellId(log, 'Tree')
       });
     }
   }
@@ -257,20 +260,57 @@ export async function createTree({
   console.log('🔶 createTree', arguments[0]);
   // 👇 first create the tree
   const treeId = await trees.createRecordAsync({
-    [fld.DATE_STAGED]: date,
-    [fld.SPECIES]: [{ id: speciesId }],
-    [fld.STAGE]: [{ id: stageId }]
+    'Date staged': date,
+    'Species': [{ id: speciesId }],
+    'Stage': [{ id: stageId }]
   });
   // 👇 then initialize its history
   await createMilestone({
     date,
     history,
-    logId: '',
-    productId: '',
+    logId: null,
+    productId: null,
     stageId,
     treeId
   });
   return treeId;
+}
+
+// ///////////////////////////////////////////////////////////////////////////
+// 🔶 deleteTree
+//    NOTE: sole delete function -- wipes everything associated with tree
+// ///////////////////////////////////////////////////////////////////////////
+
+export async function deleteTree({
+  history,
+  logs,
+  products,
+  tree,
+  trees
+}: DeleteTreeParams): Promise<void> {
+  console.log('🔶 deleteTree', arguments[0]);
+  // 👇 delete history first
+  //    NOTE: this will delete ALL history
+  const historyIds = getLinkCellIds(tree, 'History');
+  if (historyIds.length > 0) await history.deleteRecordsAsync(historyIds);
+  // 🔥 this could be wicked slow
+  const logIds = getLinkCellIds(tree, 'Logs');
+  for (const logId of logIds) {
+    const log = await getRecordById({ recordId: logId, table: logs });
+    // 👇 delete each linked product
+    const productIds = getLinkCellIds(log, 'Products');
+    for (const productId of productIds) {
+      const product = await getRecordById({
+        recordId: productId,
+        table: products
+      });
+      await products.deleteRecordAsync(product);
+    }
+    // 👇 delete each linked log
+    await logs.deleteRecordAsync(log);
+  }
+  // 👇 finally, delete the tree
+  await trees.deleteRecordAsync(tree);
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -302,13 +342,13 @@ export async function updateRecord({
   record,
   stageId,
   table,
-  tree
+  treeId
 }: UpdateRecordParams): Promise<void> {
   console.log(`🔶 updateRecord in ${table.name}`, arguments[0]);
   // 👇 first update the record
   await table.updateRecordAsync(record, {
-    [fld.DATE_STAGED]: date,
-    [fld.STAGE]: [{ id: stageId }]
+    'Date staged': date,
+    'Stage': [{ id: stageId }]
   });
   // 👇 complete the last milestone
   await completeMilestone({
@@ -316,7 +356,8 @@ export async function updateRecord({
     history,
     logId,
     productId,
-    tree
+    record,
+    treeId
   });
   // 👇 write the successor history
   await createMilestone({
@@ -325,6 +366,6 @@ export async function updateRecord({
     logId,
     productId,
     stageId,
-    treeId: tree.id
+    treeId
   });
 }

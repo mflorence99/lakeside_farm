@@ -1,47 +1,63 @@
 import { FieldId } from './airtable';
 import { LinkRecordId } from './airtable';
 
+import * as dayjs from 'dayjs';
+
 import { Field } from '@airtable/blocks/models';
 import { Record } from '@airtable/blocks/models';
 
+// 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
+export function forHTMLDatetime(date: Date): string {
+  const pad = (num): string => `${num < 10 ? '0' : ''}${num}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function getCellValueAsDayjs(
+  record: Record,
+  nm: Field | FieldId | string
+): dayjs.Dayjs {
+  return record ? dayjs(String(record.getCellValue(nm))) : null;
+}
+
 export function getCellValueAsLinkRecordIds(
   record: Record,
-  fieldOrFieldIdOrFieldName: Field | FieldId | string
+  nm: Field | FieldId | string
 ): LinkRecordId[] {
-  return record?.getCellValue(fieldOrFieldIdOrFieldName) as LinkRecordId[];
+  return record?.getCellValue(nm) as LinkRecordId[];
 }
 
 export function getCellValueAsNumber(
   record: Record,
-  fieldOrFieldIdOrFieldName: Field | FieldId | string
+  nm: Field | FieldId | string
 ): number {
-  return Number(record?.getCellValue(fieldOrFieldIdOrFieldName));
+  return Number(record?.getCellValue(nm));
 }
 
-// 👇 for links to single record
+export function getCellValueForHTMLDatetime(
+  record: Record,
+  nm: Field | FieldId | string
+): string {
+  const dayjs = getCellValueAsDayjs(record, nm);
+  return dayjs ? dayjs.format('YYYY-MM-DD[T]HH:mm') : null;
+}
+
+// 👇 for link or lookup to single record
 export function getLinkCellId(
   record: Record,
-  fieldOrFieldIdOrFieldName: Field | FieldId | string
+  nm: Field | FieldId | string
 ): string {
-  return getLinkCellIds(record, fieldOrFieldIdOrFieldName)[0];
+  return getLinkCellIds(record, nm)[0];
 }
 
 // 👇 for links to multiple records
 export function getLinkCellIds(
   record: Record,
-  fieldOrFieldIdOrFieldName: Field | FieldId | string
+  nm: Field | FieldId | string
 ): string[] {
-  const values =
-    getCellValueAsLinkRecordIds(record, fieldOrFieldIdOrFieldName) ?? [];
+  const values = getCellValueAsLinkRecordIds(record, nm) ?? [];
   return values.map((value) => value.id || value.linkedRecordId);
-}
-
-// 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
-export function toISOString(date: Date): string {
-  const pad = (num): string => `${num < 10 ? '0' : ''}${num}`;
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate()
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 // 🔥 for testing only!

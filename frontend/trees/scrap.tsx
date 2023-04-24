@@ -20,7 +20,7 @@ import { useState } from 'react';
 
 import React from 'react';
 
-export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
+export default function ScrapTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
     date: forHTMLDatetime(new Date()),
@@ -30,11 +30,13 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
   const numLogs = getCellValueAsNumber(data.tree, fld.NUM_LOGS);
   const stageId = getLinkCellId(data.tree, fld.STAGE);
   const enabled =
-    numLogs === 0 && data.tree && stageId === data.stageBySymbol['STANDING'];
+    numLogs === 0 &&
+    data.tree &&
+    (stageId === data.stageBySymbol['STANDING'] ||
+      stageId === data.stageBySymbol['HARVESTED']);
   // 👇 can't set a date before the last staged date
   if (enabled && !form.dateClamped) {
     const dateStaged = getCellValueForHTMLDatetime(data.tree, fld.DATE_STAGED);
-    // console.log({ form: form.date, dateStaged, clamped: form.dateClamped });
     if (form.date < dateStaged)
       setForm({ ...form, date: dateStaged, dateClamped: true });
   }
@@ -47,7 +49,7 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
       logId: '',
       productId: '',
       record: data.tree,
-      stageId: data.stageBySymbol['HARVESTED'],
+      stageId: data.stageBySymbol['SCRAPPED'],
       table: ctx.TREES,
       tree: data.tree
     });
@@ -56,15 +58,15 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
   };
   // 👇 build the form
   return (
-    <Box className="divided-box">
+    <Box>
       {enabled ? (
-        <Heading>Harvest {data.tree.getCellValue(fld.NAME)}</Heading>
+        <Heading>Scrap {data.tree.getCellValue(fld.NAME)}</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Harvest a standing tree</Heading>
+        <Heading textColor={colors.GRAY}>Scrap a tree</Heading>
       )}
 
       <Box display="flex" justifyContent="space-between">
-        <FormField label="Tree to harvest" width="33%">
+        <FormField label="Tree to scrap" width="33%">
           {enabled && (
             <CellRenderer
               field={ctx.TREES.getFieldByName(fld.NAME)}
@@ -72,7 +74,7 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
             />
           )}
         </FormField>
-        <FormField label="When harvested" width="auto">
+        <FormField label="When scrapped" width="auto">
           <input
             className="datetime-input"
             onChange={(e): void => setForm({ ...form, date: e.target.value })}
@@ -88,7 +90,7 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
             className="ok-button"
             disabled={!enabled}
             onClick={ok}
-            variant="primary"
+            variant="danger"
           >
             OK
           </Button>

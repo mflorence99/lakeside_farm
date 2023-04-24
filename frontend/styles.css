@@ -1,0 +1,18 @@
+.datetime-input {
+  border: 1px dotted gray;
+  height: 30px;
+  outline: none;
+}
+
+.divided-box {
+  border-bottom: 1px dotted gray;
+  margin-bottom: 1rem;
+}
+
+.ok-button {
+  width: 3rem;
+}
+
+.spinner {
+  width: 3rem;
+}
