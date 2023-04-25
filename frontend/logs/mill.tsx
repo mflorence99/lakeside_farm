@@ -47,7 +47,7 @@ export default function MillLog({
       (numSlabs === 0 && productType === 'Slab')) &&
     data.log &&
     (stageId === data.stageBySymbol['PRE_MILL'] ||
-      stageId === data.stageBySymbol['MILLING']);
+      stageId === data.stageBySymbol['MILLED']);
 
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
@@ -58,7 +58,7 @@ export default function MillLog({
       logId: data.log.getCellValueAsString(fld.LOG_ID),
       productId: '',
       record: data.log,
-      stageId: data.stageBySymbol['MILLING'],
+      stageId: data.stageBySymbol['MILLED'],
       table: ctx.LOGS,
       tree: data.tree
     });

@@ -11,6 +11,7 @@ import { Table } from '@airtable/blocks/models';
 type CompleteMilestoneParams = {
   date: string;
   history: Table;
+  leaveOpen?: boolean;
   logId: string;
   productId: string;
   tree: Record;
@@ -32,6 +33,7 @@ type CreateMilestoneParams = {
   iDryPower?: string;
   iDryTemp?: string;
   logId: string;
+  predecessor?: Record;
   productId: string;
   stageId: string;
   treeId: string;
@@ -83,6 +85,7 @@ type UpdateRecordParams = {
 export async function completeMilestone({
   date,
   history,
+  leaveOpen,
   logId,
   productId,
   tree
@@ -102,7 +105,7 @@ export async function completeMilestone({
   // 👇 if the milestone was found, complete it
   //    to satisfy the Gantt chart, we move the end date back one day
   //    to avoid overlap on the chart
-  if (milestone) {
+  if (milestone && !leaveOpen) {
     const ganttStart = getCellValueAsDayjs(milestone, fld.DATE_ENDED);
     let ganttEnd = dayjs(date);
     const sameDay = ganttStart.isSame(ganttEnd, 'day');
@@ -148,11 +151,21 @@ export async function createLogs({
         [fld.STAGE]: [{ id: stageId }],
         [fld.TREE]: [{ id: tree.id }]
       });
+      // 👇 find the predecessor history
+      const predecessor = await completeMilestone({
+        date,
+        history,
+        leaveOpen: true,
+        logId: '',
+        productId: '',
+        tree
+      });
       // 👇 then initialize its history
       await createMilestone({
         date,
         history,
         logId,
+        predecessor,
         productId: '',
         stageId,
         treeId: tree.id
@@ -171,6 +184,7 @@ export async function createMilestone({
   iDryPower,
   iDryTemp,
   logId,
+  predecessor,
   productId,
   stageId,
   treeId
@@ -182,6 +196,7 @@ export async function createMilestone({
     [fld.IDRY_POWER]: iDryPower,
     [fld.IDRY_TEMP]: iDryTemp,
     [fld.LOG_ID]: logId,
+    [fld.PREDECESSOR_GANTT]: predecessor ? [{ id: predecessor.id }] : null,
     [fld.PRODUCT_ID]: productId,
     [fld.STAGE]: [{ id: stageId }],
     [fld.TREE]: [{ id: treeId }]
@@ -236,11 +251,21 @@ export async function createProducts({
           [fld.SLAB_MIN_WIDTH]: minWidths[ix]
         });
       }
+      // 👇 find the predecessor history
+      const predecessor = await completeMilestone({
+        date,
+        history,
+        leaveOpen: true,
+        logId,
+        productId: '',
+        tree
+      });
       // 👇 then initialize its history
       await createMilestone({
         date,
         history,
         logId,
+        predecessor,
         productId,
         stageId,
         treeId: tree.id
@@ -317,7 +342,7 @@ export async function updateRecord({
     [fld.STAGE]: [{ id: stageId }]
   });
   // 👇 complete the last milestone
-  await completeMilestone({
+  const predecessor = await completeMilestone({
     date,
     history,
     logId,
@@ -331,6 +356,7 @@ export async function updateRecord({
     iDryPower,
     iDryTemp,
     logId,
+    predecessor: predecessor,
     productId,
     stageId,
     treeId: tree.id

@@ -50,10 +50,10 @@ export default function DriedProduct({ ctx, data }: AppProps): JSX.Element {
     <Box className="divided-box">
       {enabled ? (
         <Heading>
-          Drying of {data.product.getCellValue(fld.NAME)} is complete
+          Drying {data.product.getCellValue(fld.NAME)} completed
         </Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Drying of product is complete</Heading>
+        <Heading textColor={colors.GRAY}>Drying product completed</Heading>
       )}
 
       <Box display="flex" justifyContent="space-between">

@@ -16,6 +16,7 @@ export const fld = {
   NUM_BOARDS: '# Boards',
   NUM_LOGS: '# Logs',
   NUM_SLABS: '# Slabs',
+  PREDECESSOR_GANTT: 'Predecessor (Gantt)',
   PRODUCT: 'Product',
   PRODUCT_ID: 'Product ID',
   SPECIES: 'Species',
