@@ -138,7 +138,6 @@ export async function createLogs({
       // 👇 first create the log
       const logId = `${ix + 1}`;
       await logs.createRecordAsync({
-        [fld.DATE_STAGED]: date,
         [fld.DIAMETER]: diameters[ix],
         [fld.LENGTH]: lengths[ix],
         [fld.LOG_ID]: logId,
@@ -206,7 +205,6 @@ export async function createProducts({
     if (thicknesses[ix]) {
       // 👇 first create the product
       const common = {
-        [fld.DATE_STAGED]: date,
         [fld.LOG]: [{ id: log.id }],
         [fld.STAGE]: [{ id: stageId }],
         [fld.THICKNESS]: thicknesses[ix],
@@ -257,7 +255,6 @@ export async function createTree({
   console.log('🔶 createTree', arguments[0]);
   // 👇 first create the tree
   const treeId = await trees.createRecordAsync({
-    [fld.DATE_STAGED]: date,
     [fld.SPECIES]: [{ id: speciesId }],
     [fld.STAGE]: [{ id: stageId }]
   });
@@ -307,7 +304,6 @@ export async function updateRecord({
   console.log(`🔶 updateRecord in ${table.name}`, arguments[0]);
   // 👇 first update the record
   await table.updateRecordAsync(record, {
-    [fld.DATE_STAGED]: date,
     [fld.STAGE]: [{ id: stageId }]
   });
   // 👇 complete the last milestone

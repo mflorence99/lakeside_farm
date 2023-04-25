@@ -3,7 +3,6 @@ export const fld = {
   BOARD_WIDTH: 'Board width',
   DATE_ENDED: 'Date ended',
   DATE_ENDED_GANTT: 'Date ended (Gantt)',
-  DATE_STAGED: 'Date staged',
   DATE_STARTED: 'Date started',
   DATE_STARTED_GANTT: 'Date started (Gantt)',
   DIAMETER: 'Diameter',
