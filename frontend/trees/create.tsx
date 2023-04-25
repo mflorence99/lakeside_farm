@@ -46,7 +46,7 @@ export default function CreateTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 build the form
   return (
     <Box className="divided-box">
-      <Heading>Identify a standing tree</Heading>
+      <Heading>Identify standing tree</Heading>
 
       <Box display="flex" justifyContent="space-between">
         <FormField label="Species" width="33%">

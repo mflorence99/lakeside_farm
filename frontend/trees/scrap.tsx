@@ -54,7 +54,7 @@ export default function ScrapTree({ ctx, data }: AppProps): JSX.Element {
       {enabled ? (
         <Heading>Scrap {data.tree.getCellValue(fld.NAME)}</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Scrap a tree</Heading>
+        <Heading textColor={colors.GRAY}>Scrap tree</Heading>
       )}
 
       <Box display="flex" justifyContent="space-between">
@@ -63,6 +63,7 @@ export default function ScrapTree({ ctx, data }: AppProps): JSX.Element {
             <CellRenderer
               field={ctx.TREES.getFieldByName(fld.NAME)}
               record={data.tree}
+              shouldWrap={false}
             />
           )}
         </FormField>

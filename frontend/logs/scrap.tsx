@@ -55,7 +55,7 @@ export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
       {enabled ? (
         <Heading>Scrap {data.log.getCellValue(fld.NAME)}</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Scrap a log</Heading>
+        <Heading textColor={colors.GRAY}>Scrap log</Heading>
       )}
 
       <Box display="flex" justifyContent="space-between">
@@ -64,6 +64,7 @@ export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
             <CellRenderer
               field={ctx.LOGS.getFieldByName(fld.NAME)}
               record={data.log}
+              shouldWrap={false}
             />
           )}
         </FormField>

@@ -29,6 +29,8 @@ type CreateLogsParams = {
 type CreateMilestoneParams = {
   date: string;
   history: Table;
+  iDryPower?: string;
+  iDryTemp?: string;
   logId: string;
   productId: string;
   stageId: string;
@@ -64,6 +66,8 @@ type GetRecordByIdParams = { recordId: string; table: Table };
 type UpdateRecordParams = {
   date: string;
   history: Table;
+  iDryPower?: string;
+  iDryTemp?: string;
   logId: string;
   productId: string;
   record: Record;
@@ -164,6 +168,8 @@ export async function createLogs({
 export async function createMilestone({
   date,
   history,
+  iDryPower,
+  iDryTemp,
   logId,
   productId,
   stageId,
@@ -173,6 +179,8 @@ export async function createMilestone({
   return await history.createRecordAsync({
     [fld.DATE_ENDED]: date,
     [fld.DATE_ENDED_GANTT]: date,
+    [fld.IDRY_POWER]: iDryPower,
+    [fld.IDRY_TEMP]: iDryTemp,
     [fld.LOG_ID]: logId,
     [fld.PRODUCT_ID]: productId,
     [fld.STAGE]: [{ id: stageId }],
@@ -294,6 +302,8 @@ export async function getRecordById({
 export async function updateRecord({
   date,
   history,
+  iDryPower,
+  iDryTemp,
   logId,
   productId,
   record,
@@ -318,6 +328,8 @@ export async function updateRecord({
   await createMilestone({
     date,
     history,
+    iDryPower,
+    iDryTemp,
     logId,
     productId,
     stageId,

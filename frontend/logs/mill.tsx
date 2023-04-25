@@ -47,7 +47,7 @@ export default function MillLog({
       (numSlabs === 0 && productType === 'Slab')) &&
     data.log &&
     (stageId === data.stageBySymbol['PRE_MILL'] ||
-      stageId === data.stageBySymbol['MILLED']);
+      stageId === data.stageBySymbol['MILLING']);
 
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
@@ -58,7 +58,7 @@ export default function MillLog({
       logId: data.log.getCellValueAsString(fld.LOG_ID),
       productId: '',
       record: data.log,
-      stageId: data.stageBySymbol['MILLED'],
+      stageId: data.stageBySymbol['MILLING'],
       table: ctx.LOGS,
       tree: data.tree
     });
@@ -249,10 +249,11 @@ export default function MillLog({
               <CellRenderer
                 field={ctx.LOGS.getFieldByName('Name')}
                 record={data.log}
+                shouldWrap={false}
               />
             )}
           </FormField>
-          <FormField label="When milled" width="auto">
+          <FormField label="When milling started" width="auto">
             <input
               className="datetime-input"
               onChange={(e): void => setForm({ ...form, date: e.target.value })}

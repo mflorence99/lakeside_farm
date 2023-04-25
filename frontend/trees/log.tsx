@@ -76,9 +76,7 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
       {enabled ? (
         <Heading>Cut {data.tree.getCellValue(fld.NAME)} into logs</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>
-          Cut a harvested tree into logs
-        </Heading>
+        <Heading textColor={colors.GRAY}>Cut harvested tree into logs</Heading>
       )}
 
       <Box>
@@ -135,6 +133,7 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
               <CellRenderer
                 field={ctx.TREES.getFieldByName(fld.NAME)}
                 record={data.tree}
+                shouldWrap={false}
               />
             )}
           </FormField>

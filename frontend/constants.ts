@@ -7,6 +7,8 @@ export const fld = {
   DATE_STARTED_GANTT: 'Date started (Gantt)',
   DIAMETER: 'Diameter',
   HISTORY: 'History',
+  IDRY_POWER: 'iDry power',
+  IDRY_TEMP: 'iDry temp',
   LENGTH: 'Length',
   LOG: 'Log',
   LOG_ID: 'Log ID',
