@@ -13,7 +13,6 @@ import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 import { Loader } from '@airtable/blocks/ui';
 
-import { colors } from '@airtable/blocks/ui';
 import { expandRecord } from '@airtable/blocks/ui';
 import { useState } from 'react';
 
@@ -49,46 +48,44 @@ export default function ScrapTree({ ctx, data }: AppProps): JSX.Element {
     setForm({ ...form, working: false });
   };
   // 👇 build the form
-  return (
-    <Box>
-      {enabled ? (
+  if (enabled)
+    return (
+      <Box>
         <Heading>Scrap {data.tree.getCellValue(fld.NAME)}</Heading>
-      ) : (
-        <Heading textColor={colors.GRAY}>Scrap tree</Heading>
-      )}
 
-      <Box display="flex" justifyContent="space-between">
-        <FormField label="Tree to scrap" width="33%">
-          {enabled && (
-            <CellRenderer
-              field={ctx.TREES.getFieldByName(fld.NAME)}
-              record={data.tree}
-              shouldWrap={false}
+        <Box display="flex" justifyContent="space-between">
+          <FormField label="Tree to scrap" width="33%">
+            {enabled && (
+              <CellRenderer
+                field={ctx.TREES.getFieldByName(fld.NAME)}
+                record={data.tree}
+                shouldWrap={false}
+              />
+            )}
+          </FormField>
+          <FormField label="When scrapped" width="auto">
+            <input
+              className="datetime-input"
+              onChange={(e): void => setForm({ ...form, date: e.target.value })}
+              type="datetime-local"
+              value={form.date}
             />
+          </FormField>
+          {form.working ? (
+            <Loader alignSelf="center" className="spinner" scale={0.3} />
+          ) : (
+            <Button
+              alignSelf="center"
+              className="ok-button"
+              disabled={!enabled}
+              onClick={ok}
+              variant="danger"
+            >
+              OK
+            </Button>
           )}
-        </FormField>
-        <FormField label="When scrapped" width="auto">
-          <input
-            className="datetime-input"
-            onChange={(e): void => setForm({ ...form, date: e.target.value })}
-            type="datetime-local"
-            value={form.date}
-          />
-        </FormField>
-        {form.working ? (
-          <Loader alignSelf="center" className="spinner" scale={0.3} />
-        ) : (
-          <Button
-            alignSelf="center"
-            className="ok-button"
-            disabled={!enabled}
-            onClick={ok}
-            variant="danger"
-          >
-            OK
-          </Button>
-        )}
+        </Box>
       </Box>
-    </Box>
-  );
+    );
+  else return null;
 }

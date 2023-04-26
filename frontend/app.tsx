@@ -1,6 +1,5 @@
 import { SelectOption } from './airtable';
 import { StageMap } from './constants';
-import { Warning } from './warning';
 
 import { fld } from './constants';
 import { tbl } from './constants';
@@ -8,6 +7,7 @@ import { tbl } from './constants';
 import LogsApp from './logs/app';
 import ProductsApp from './products/app';
 import TreesApp from './trees/app';
+import Warning from './warning';
 
 import { Box } from '@airtable/blocks/ui';
 import { Record } from '@airtable/blocks/models';

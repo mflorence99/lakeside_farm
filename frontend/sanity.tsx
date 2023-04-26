@@ -1,6 +1,6 @@
-import { Warning } from './warning';
-
 import { tbl } from './constants';
+
+import Warning from './warning';
 
 import { Box } from '@airtable/blocks/ui';
 import { PropsWithChildren } from 'react';

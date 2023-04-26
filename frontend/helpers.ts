@@ -10,19 +10,19 @@ import { Record } from '@airtable/blocks/models';
 
 export function findHistoryFor(
   histories: Record[],
+  stages: string[],
   treeId: string,
-  logId: string,
-  productId: string,
-  stage: string
+  logId = '',
+  productId = ''
 ): Record {
   return histories.find((history) => {
     const matchesTree = treeId === history.getCellValueAsString(fld.TREE_ID);
     const matchesLog = logId === history.getCellValueAsString(fld.LOG_ID);
     const matchesProduct =
       productId === history.getCellValueAsString(fld.PRODUCT_ID);
-    const matchesStage = history
-      .getCellValueAsString(fld.STAGE)
-      .endsWith(stage);
+    const matchesStage = stages.some((stage) =>
+      history.getCellValueAsString(fld.STAGE).endsWith(stage)
+    );
     return matchesTree && matchesLog && matchesProduct && matchesStage;
   });
 }

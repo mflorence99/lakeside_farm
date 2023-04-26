@@ -6,7 +6,7 @@ import { colors } from '@airtable/blocks/ui';
 
 import React from 'react';
 
-export function Warning({ text }): JSX.Element {
+export default function Warning({ text }): JSX.Element {
   return (
     <Box alignItems="center" display="flex">
       <Icon fillColor={colors.RED} name="warning" size={16} />

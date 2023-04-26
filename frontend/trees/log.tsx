@@ -1,11 +1,14 @@
 import { AppProps } from '../app';
 
 import { createLogs } from '../actions';
+import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
+
+import History from '../history';
 
 import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
@@ -36,6 +39,12 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
   const stageId = getLinkCellId(data.tree, fld.STAGE);
   const enabled =
     numLogs === 0 && data.tree && stageId === data.stageIdBySymbol.HARVESTED;
+  // 👇 already been processed at the desired stage?
+  const alreadyProcessed = findHistoryFor(
+    data.histories,
+    [data.stageBySymbol.LOGGED, data.stageBySymbol.SCRAPPED],
+    data.tree?.getCellValueAsString(fld.TREE_ID)
+  );
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
@@ -79,87 +88,99 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
         <Heading textColor={colors.GRAY}>Cut harvested tree into logs</Heading>
       )}
 
-      <Box>
-        <table width="100%">
-          <thead>
-            <tr>
-              <th></th>
-              {logIndex.map((index) => (
-                <th key={`${index}`}>{`#${index + 1}`}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Length (ft)</td>
-              {logIndex.map((index) => (
-                <td key={`${index}`} width={`${100 / (logIndex.length + 1)}%`}>
-                  <Input
-                    onChange={(e): void => {
-                      const lengths = [...form.lengths];
-                      lengths[index] = e.target.valueAsNumber;
-                      setForm({ ...form, lengths });
-                    }}
-                    type="number"
-                    value={form.lengths[index]}
-                  />
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td>Diam (in)</td>
-              {logIndex.map((index) => (
-                <td key={`${index}`} width={`${100 / (logIndex.length + 1)}%`}>
-                  <Input
-                    onChange={(e): void => {
-                      const diameters = [...form.diameters];
-                      diameters[index] = e.target.valueAsNumber;
-                      setForm({ ...form, diameters });
-                    }}
-                    type="number"
-                    value={form.diameters[index]}
-                  />
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
+      {alreadyProcessed ? (
+        <History ctx={ctx} history={alreadyProcessed} />
+      ) : (
+        <Box>
+          <table width="100%">
+            <thead>
+              <tr>
+                <th></th>
+                {logIndex.map((index) => (
+                  <th key={`${index}`}>{`#${index + 1}`}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Length (ft)</td>
+                {logIndex.map((index) => (
+                  <td
+                    key={`${index}`}
+                    width={`${100 / (logIndex.length + 1)}%`}
+                  >
+                    <Input
+                      onChange={(e): void => {
+                        const lengths = [...form.lengths];
+                        lengths[index] = e.target.valueAsNumber;
+                        setForm({ ...form, lengths });
+                      }}
+                      type="number"
+                      value={form.lengths[index]}
+                    />
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td>Diam (in)</td>
+                {logIndex.map((index) => (
+                  <td
+                    key={`${index}`}
+                    width={`${100 / (logIndex.length + 1)}%`}
+                  >
+                    <Input
+                      onChange={(e): void => {
+                        const diameters = [...form.diameters];
+                        diameters[index] = e.target.valueAsNumber;
+                        setForm({ ...form, diameters });
+                      }}
+                      type="number"
+                      value={form.diameters[index]}
+                    />
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
 
-        <br />
+          <br />
 
-        <Box display="flex" justifyContent="space-between">
-          <FormField label="Tree to log" width="33%">
-            {enabled && (
-              <CellRenderer
-                field={ctx.TREES.getFieldByName(fld.NAME)}
-                record={data.tree}
-                shouldWrap={false}
+          <Box display="flex" justifyContent="space-between">
+            <FormField label="Tree to log" width="33%">
+              {enabled && (
+                <CellRenderer
+                  field={ctx.TREES.getFieldByName(fld.NAME)}
+                  record={data.tree}
+                  shouldWrap={false}
+                />
+              )}
+            </FormField>
+            <FormField label="When logged" width="auto">
+              <input
+                className="datetime-input"
+                onChange={(e): void =>
+                  setForm({ ...form, date: e.target.value })
+                }
+                type="datetime-local"
+                value={form.date}
               />
+            </FormField>
+            {form.working ? (
+              <Loader alignSelf="center" className="spinner" scale={0.3} />
+            ) : (
+              <Button
+                alignSelf="center"
+                className="ok-button"
+                disabled={!enabled || !form.diameters[0] || !form.lengths[0]}
+                onClick={(): void => setForm({ ...form, isDialogOpen: true })}
+                variant="primary"
+              >
+                OK
+              </Button>
             )}
-          </FormField>
-          <FormField label="When logged" width="auto">
-            <input
-              className="datetime-input"
-              onChange={(e): void => setForm({ ...form, date: e.target.value })}
-              type="datetime-local"
-              value={form.date}
-            />
-          </FormField>
-          {form.working ? (
-            <Loader alignSelf="center" className="spinner" scale={0.3} />
-          ) : (
-            <Button
-              alignSelf="center"
-              className="ok-button"
-              disabled={!enabled || !form.diameters[0] || !form.lengths[0]}
-              onClick={(): void => setForm({ ...form, isDialogOpen: true })}
-              variant="primary"
-            >
-              OK
-            </Button>
-          )}
+          </Box>
         </Box>
-      </Box>
+      )}
     </Box>
   );
 }
