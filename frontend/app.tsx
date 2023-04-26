@@ -1,7 +1,5 @@
-import './styles.css';
-
 import { SelectOption } from './airtable';
-import { Warning } from './components';
+import { Warning } from './warning';
 
 import { fld } from './constants';
 import { tbl } from './constants';
@@ -27,11 +25,12 @@ export type AppContext = {
 };
 
 export type AppData = {
+  histories?: Record[];
   log?: Record;
   product?: Record;
   selectedRecordId?: string;
   speciesOptions?: SelectOption[];
-  stageBySymbol?: { [symbol: string]: string };
+  stageIdBySymbol?: { [symbol: string]: string };
   tree?: Record;
 };
 
@@ -41,29 +40,6 @@ export type AppProps = {
 };
 
 export default function LakesideFarmApp(): JSX.Element {
-  // 👇 prepare the app
-  const base = useBase();
-  // 👇 perform sanity check
-  const errors = Object.keys(tbl).reduce((acc, key) => {
-    const table = base.getTableByNameIfExists(tbl[key]);
-    if (!table) acc.push(`Table ${tbl[key]} does not exist`);
-    return acc;
-  }, []);
-  if (errors.length > 0) return <Insane errors={errors} />;
-  else return <Sane />;
-}
-
-function Insane({ errors }): JSX.Element {
-  return (
-    <Box padding={2}>
-      {errors.map((error) => (
-        <Warning key={error} text={error} />
-      ))}
-    </Box>
-  );
-}
-
-function Sane(): JSX.Element {
   // 👇 prepare the app
   const base = useBase();
   const cursor = useCursor();
@@ -85,13 +61,14 @@ function Sane(): JSX.Element {
   }));
   // 👇 load up Stages data
   const allStages = useRecords(ctx.STAGES);
-  data.stageBySymbol = allStages.reduce((acc, record) => {
+  data.stageIdBySymbol = allStages.reduce((acc, record) => {
     acc[record.getCellValueAsString(fld.SYMBOL)] = record.id;
     return acc;
   }, {});
   // 👇 extract the selectedRecordId
   data.selectedRecordId =
     cursor.selectedRecordIds.length === 1 ? cursor.selectedRecordIds[0] : '';
+
   // 👇 dispatch according to table
   let jsx;
   const table = base.getTableByIdIfExists(cursor.activeTableId);
@@ -113,5 +90,5 @@ function Sane(): JSX.Element {
       );
   }
   // 👇 all in a wrapper
-  return <Box padding={2}>{jsx}</Box>;
+  return <Box>{jsx}</Box>;
 }

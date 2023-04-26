@@ -25,7 +25,8 @@ export default function FlattenProduct({ ctx, data }: AppProps): JSX.Element {
     working: false
   });
   const stageId = getLinkCellId(data.product, fld.STAGE);
-  const enabled = data.product && stageId === data.stageBySymbol['PRE_FLATTEN'];
+  const enabled =
+    data.product && stageId === data.stageIdBySymbol['PRE_FLATTEN'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -35,7 +36,7 @@ export default function FlattenProduct({ ctx, data }: AppProps): JSX.Element {
       logId: data.log.getCellValueAsString(fld.LOG_ID),
       productId: data.product.getCellValueAsString(fld.PRODUCT_ID),
       record: data.product,
-      stageId: data.stageBySymbol['FLATTENING'],
+      stageId: data.stageIdBySymbol['FLATTENING'],
       table: ctx.PRODUCTS,
       tree: data.tree
     });

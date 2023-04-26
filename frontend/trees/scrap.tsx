@@ -30,8 +30,8 @@ export default function ScrapTree({ ctx, data }: AppProps): JSX.Element {
   const enabled =
     numLogs === 0 &&
     data.tree &&
-    (stageId === data.stageBySymbol['STANDING'] ||
-      stageId === data.stageBySymbol['HARVESTED']);
+    (stageId === data.stageIdBySymbol['STANDING'] ||
+      stageId === data.stageIdBySymbol['HARVESTED']);
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -41,7 +41,7 @@ export default function ScrapTree({ ctx, data }: AppProps): JSX.Element {
       logId: '',
       productId: '',
       record: data.tree,
-      stageId: data.stageBySymbol['SCRAPPED'],
+      stageId: data.stageIdBySymbol['SCRAPPED'],
       table: ctx.TREES,
       tree: data.tree
     });

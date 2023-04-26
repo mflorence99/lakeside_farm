@@ -28,7 +28,7 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
   const numLogs = getCellValueAsNumber(data.tree, fld.NUM_LOGS);
   const stageId = getLinkCellId(data.tree, fld.STAGE);
   const enabled =
-    numLogs === 0 && data.tree && stageId === data.stageBySymbol['STANDING'];
+    numLogs === 0 && data.tree && stageId === data.stageIdBySymbol['STANDING'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -38,7 +38,7 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
       logId: '',
       productId: '',
       record: data.tree,
-      stageId: data.stageBySymbol['HARVESTED'],
+      stageId: data.stageIdBySymbol['HARVESTED'],
       table: ctx.TREES,
       tree: data.tree
     });

@@ -13,6 +13,7 @@ import ScrapProduct from './scrap';
 import { Box } from '@airtable/blocks/ui';
 
 import { useRecordById } from '@airtable/blocks/ui';
+import { useRecords } from '@airtable/blocks/ui';
 
 import React from 'react';
 
@@ -24,7 +25,8 @@ export default function ProductsApp({ ctx, data }: AppProps): JSX.Element {
     getLinkCellId(data.product, fld.LOG) ?? ''
   );
   data.tree = useRecordById(ctx.TREES, getLinkCellId(data.log, fld.TREE) ?? '');
-  // 🔥 https://stackoverflow.com/questions/69514771/async-function-call-inside-jsx
+  data.histories =
+    useRecords(data.tree?.selectLinkedRecordsFromCell(fld.HISTORY)) ?? [];
 
   // 👇 build the app
   return (

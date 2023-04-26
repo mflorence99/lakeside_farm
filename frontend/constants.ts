@@ -31,6 +31,18 @@ export const fld = {
   TYPE: 'Type'
 };
 
+export const iDryPowerOptions = [
+  { label: 'High power', value: 'HIGH' },
+  { label: 'Low power', value: 'LOW' }
+];
+
+export const iDryTempOptions = [
+  { label: '100\u00B0 F', value: '100' },
+  { label: '125\u00B0 F', value: '125' },
+  { label: '150\u00B0 F', value: '150' },
+  { label: '175\u00B0 F', value: '175' }
+];
+
 export const tbl = {
   HISTORY: 'History',
   LOGS: 'Logs',

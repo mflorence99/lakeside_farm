@@ -9,6 +9,7 @@ import ScrapLog from './scrap';
 import { Box } from '@airtable/blocks/ui';
 
 import { useRecordById } from '@airtable/blocks/ui';
+import { useRecords } from '@airtable/blocks/ui';
 
 import React from 'react';
 
@@ -18,6 +19,8 @@ export default function LogsApp({ ctx, data }: AppProps): JSX.Element {
   // 👇 load up the current Log and its parent Tree
   data.log = useRecordById(ctx.LOGS, data.selectedRecordId);
   data.tree = useRecordById(ctx.TREES, getLinkCellId(data.log, fld.TREE) ?? '');
+  data.histories =
+    useRecords(data.tree?.selectLinkedRecordsFromCell(fld.HISTORY)) ?? [];
 
   // 👇 build the app
   return (

@@ -4,7 +4,7 @@
     "jsx": "react",
     "module": "commonjs",
     "sourceMap": true,
-    "target": "es2018"
+    "target": "es2019"
   },
   "exclude": ["node_modules"]
 }

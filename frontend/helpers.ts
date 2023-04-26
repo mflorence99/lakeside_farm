@@ -1,10 +1,31 @@
 import { FieldId } from './airtable';
 import { LinkRecordId } from './airtable';
 
+import { fld } from './constants';
+
 import * as dayjs from 'dayjs';
 
 import { Field } from '@airtable/blocks/models';
 import { Record } from '@airtable/blocks/models';
+
+export function findHistoryFor(
+  histories: Record[],
+  treeId: string,
+  logId: string,
+  productId: string,
+  stage: string
+): Record {
+  return histories.find((history) => {
+    const matchesTree = treeId === history.getCellValueAsString(fld.TREE_ID);
+    const matchesLog = logId === history.getCellValueAsString(fld.LOG_ID);
+    const matchesProduct =
+      productId === history.getCellValueAsString(fld.PRODUCT_ID);
+    const matchesStage = history
+      .getCellValueAsString(fld.STAGE)
+      .endsWith(stage);
+    return matchesTree && matchesLog && matchesProduct && matchesStage;
+  });
+}
 
 // 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
 export function forHTMLDatetime(date: Date): string {

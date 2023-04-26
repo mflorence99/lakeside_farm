@@ -25,7 +25,8 @@ export default function FinishProduct({ ctx, data }: AppProps): JSX.Element {
     working: false
   });
   const stageId = getLinkCellId(data.product, fld.STAGE);
-  const enabled = data.product && stageId === data.stageBySymbol['FLATTENING'];
+  const enabled =
+    data.product && stageId === data.stageIdBySymbol['FLATTENING'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -35,7 +36,7 @@ export default function FinishProduct({ ctx, data }: AppProps): JSX.Element {
       logId: data.log.getCellValueAsString(fld.LOG_ID),
       productId: data.product.getCellValueAsString(fld.PRODUCT_ID),
       record: data.product,
-      stageId: data.stageBySymbol['FINISHED'],
+      stageId: data.stageIdBySymbol['FINISHED'],
       table: ctx.PRODUCTS,
       tree: data.tree
     });

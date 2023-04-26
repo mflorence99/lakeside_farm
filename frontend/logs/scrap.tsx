@@ -32,7 +32,7 @@ export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
     numBoards === 0 &&
     numSlabs === 0 &&
     data.log &&
-    stageId === data.stageBySymbol['PRE_MILL'];
+    stageId === data.stageIdBySymbol['PRE_MILL'];
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -42,7 +42,7 @@ export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
       logId: data.log.getCellValueAsString(fld.LOG_ID),
       productId: '',
       record: data.log,
-      stageId: data.stageBySymbol['SCRAPPED'],
+      stageId: data.stageIdBySymbol['SCRAPPED'],
       table: ctx.LOGS,
       tree: data.tree
     });

@@ -3,6 +3,8 @@ import { AppProps } from '../app';
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
+import { iDryPowerOptions } from '../constants';
+import { iDryTempOptions } from '../constants';
 import { updateRecord } from '../actions';
 
 import { Box } from '@airtable/blocks/ui';
@@ -19,18 +21,6 @@ import { useState } from 'react';
 
 import React from 'react';
 
-const iDryPowerOptions = [
-  { label: 'High power', value: 'HIGH' },
-  { label: 'Low power', value: 'LOW' }
-];
-
-const iDryTempOptions = [
-  { label: '100\u00B0 F', value: '100' },
-  { label: '125\u00B0 F', value: '125' },
-  { label: '150\u00B0 F', value: '150' },
-  { label: '175\u00B0 F', value: '175' }
-];
-
 export default function KilnDryProduct({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
@@ -42,8 +32,8 @@ export default function KilnDryProduct({ ctx, data }: AppProps): JSX.Element {
   const stageId = getLinkCellId(data.product, fld.STAGE);
   const enabled =
     data.product &&
-    (stageId === data.stageBySymbol['AIR_DRYING'] ||
-      stageId === data.stageBySymbol['KILN_DRYING']);
+    (stageId === data.stageIdBySymbol['AIR_DRYING'] ||
+      stageId === data.stageIdBySymbol['KILN_DRYING']);
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -55,7 +45,7 @@ export default function KilnDryProduct({ ctx, data }: AppProps): JSX.Element {
       logId: data.log.getCellValueAsString(fld.LOG_ID),
       productId: data.product.getCellValueAsString(fld.PRODUCT_ID),
       record: data.product,
-      stageId: data.stageBySymbol['KILN_DRYING'],
+      stageId: data.stageIdBySymbol['KILN_DRYING'],
       table: ctx.PRODUCTS,
       tree: data.tree
     });
