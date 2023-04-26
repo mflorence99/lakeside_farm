@@ -24,7 +24,7 @@ export default function CreateTree({ ctx, data }: AppProps): JSX.Element {
     working: false
   });
   const dfltSpecies = { label: 'Pick one', value: null };
-  const stageId = data.stageIdBySymbol['STANDING'];
+  const stageId = data.stageIdBySymbol.STANDING;
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });

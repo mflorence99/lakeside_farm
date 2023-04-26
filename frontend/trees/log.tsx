@@ -35,7 +35,7 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
   const numLogs = getCellValueAsNumber(data.tree, fld.NUM_LOGS);
   const stageId = getLinkCellId(data.tree, fld.STAGE);
   const enabled =
-    numLogs === 0 && data.tree && stageId === data.stageIdBySymbol['HARVESTED'];
+    numLogs === 0 && data.tree && stageId === data.stageIdBySymbol.HARVESTED;
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
@@ -45,7 +45,7 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
       logId: '',
       productId: '',
       record: data.tree,
-      stageId: data.stageIdBySymbol['LOGGED'],
+      stageId: data.stageIdBySymbol.LOGGED,
       table: ctx.TREES,
       tree: data.tree
     });
@@ -55,7 +55,7 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
       history: ctx.HISTORY,
       lengths: form.lengths,
       logs: ctx.LOGS,
-      stageId: data.stageIdBySymbol['PRE_MILL'],
+      stageId: data.stageIdBySymbol.PRE_MILL,
       tree: data.tree
     });
     expandRecord(data.tree);

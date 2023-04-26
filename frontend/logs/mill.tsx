@@ -46,8 +46,8 @@ export default function MillLog({
     ((numBoards === 0 && productType === 'Board') ||
       (numSlabs === 0 && productType === 'Slab')) &&
     data.log &&
-    (stageId === data.stageIdBySymbol['PRE_MILL'] ||
-      stageId === data.stageIdBySymbol['MILLED']);
+    (stageId === data.stageIdBySymbol.PRE_MILL ||
+      stageId === data.stageIdBySymbol.MILLED);
 
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
@@ -58,7 +58,7 @@ export default function MillLog({
       logId: data.log.getCellValueAsString(fld.LOG_ID),
       productId: '',
       record: data.log,
-      stageId: data.stageIdBySymbol['MILLED'],
+      stageId: data.stageIdBySymbol.MILLED,
       table: ctx.LOGS,
       tree: data.tree
     });
@@ -71,7 +71,7 @@ export default function MillLog({
       maxWidths: form.maxWidths,
       minWidths: form.minWidths,
       products: ctx.PRODUCTS,
-      stageId: data.stageIdBySymbol['PRE_DRY'],
+      stageId: data.stageIdBySymbol.PRE_DRY,
       thicknesses: form.thicknesses,
       tree: data.tree,
       type: productType,

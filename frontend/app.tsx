@@ -1,4 +1,5 @@
 import { SelectOption } from './airtable';
+import { StageMap } from './constants';
 import { Warning } from './warning';
 
 import { fld } from './constants';
@@ -30,7 +31,8 @@ export type AppData = {
   product?: Record;
   selectedRecordId?: string;
   speciesOptions?: SelectOption[];
-  stageIdBySymbol?: { [symbol: string]: string };
+  stageBySymbol?: StageMap;
+  stageIdBySymbol?: StageMap;
   tree?: Record;
 };
 
@@ -61,14 +63,19 @@ export default function LakesideFarmApp(): JSX.Element {
   }));
   // 👇 load up Stages data
   const allStages = useRecords(ctx.STAGES);
+  data.stageBySymbol = allStages.reduce((acc, record) => {
+    acc[record.getCellValueAsString(fld.SYMBOL)] = record.getCellValueAsString(
+      fld.STAGE
+    );
+    return acc;
+  }, {} as StageMap);
   data.stageIdBySymbol = allStages.reduce((acc, record) => {
     acc[record.getCellValueAsString(fld.SYMBOL)] = record.id;
     return acc;
-  }, {});
+  }, {} as StageMap);
   // 👇 extract the selectedRecordId
   data.selectedRecordId =
     cursor.selectedRecordIds.length === 1 ? cursor.selectedRecordIds[0] : '';
-
   // 👇 dispatch according to table
   let jsx;
   const table = base.getTableByIdIfExists(cursor.activeTableId);
