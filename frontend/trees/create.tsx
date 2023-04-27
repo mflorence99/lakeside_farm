@@ -5,12 +5,11 @@ import { forHTMLDatetime } from '../helpers';
 import { getRecordById } from '../actions';
 
 import Datetime from '../datetime';
+import OKButton from '../ok-button';
 
 import { Box } from '@airtable/blocks/ui';
-import { Button } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
-import { Loader } from '@airtable/blocks/ui';
 import { Select } from '@airtable/blocks/ui';
 
 import { expandRecord } from '@airtable/blocks/ui';
@@ -65,19 +64,11 @@ export default function CreateTree({ ctx, data }: AppProps): JSX.Element {
             onChange={(date): void => setForm({ ...form, date })}
           />
         </FormField>
-        {form.working ? (
-          <Loader alignSelf="center" className="spinner" scale={0.3} />
-        ) : (
-          <Button
-            alignSelf="center"
-            className="ok-button"
-            disabled={!form.speciesId}
-            onClick={ok}
-            variant="primary"
-          >
-            OK
-          </Button>
-        )}
+        <OKButton
+          disabled={!form.speciesId}
+          onClick={ok}
+          working={form.working}
+        />
       </Box>
     </Box>
   );

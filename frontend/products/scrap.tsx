@@ -6,13 +6,12 @@ import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
 import Datetime from '../datetime';
+import OKButton from '../ok-button';
 
 import { Box } from '@airtable/blocks/ui';
-import { Button } from '@airtable/blocks/ui';
 import { CellRenderer } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
-import { Loader } from '@airtable/blocks/ui';
 
 import { colors } from '@airtable/blocks/ui';
 import { expandRecord } from '@airtable/blocks/ui';
@@ -70,19 +69,7 @@ export default function ScrapProduct({ ctx, data }: AppProps): JSX.Element {
             onChange={(date): void => setForm({ ...form, date })}
           />
         </FormField>
-        {form.working ? (
-          <Loader alignSelf="center" className="spinner" scale={0.3} />
-        ) : (
-          <Button
-            alignSelf="center"
-            className="ok-button"
-            disabled={!enabled}
-            onClick={ok}
-            variant="danger"
-          >
-            OK
-          </Button>
-        )}
+        <OKButton disabled={!enabled} onClick={ok} working={form.working} />
       </Box>
     </Box>
   );

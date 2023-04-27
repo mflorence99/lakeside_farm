@@ -10,15 +10,14 @@ import { updateRecord } from '../actions';
 
 import Datetime from '../datetime';
 import History from '../history';
+import OKButton from '../ok-button';
 
 import { Box } from '@airtable/blocks/ui';
-import { Button } from '@airtable/blocks/ui';
 import { CellRenderer } from '@airtable/blocks/ui';
 import { ConfirmationDialog } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 import { Input } from '@airtable/blocks/ui';
-import { Loader } from '@airtable/blocks/ui';
 
 import { colors } from '@airtable/blocks/ui';
 import { expandRecord } from '@airtable/blocks/ui';
@@ -163,19 +162,11 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
                 onChange={(date): void => setForm({ ...form, date })}
               />
             </FormField>
-            {form.working ? (
-              <Loader alignSelf="center" className="spinner" scale={0.3} />
-            ) : (
-              <Button
-                alignSelf="center"
-                className="ok-button"
-                disabled={!enabled || !form.diameters[0] || !form.lengths[0]}
-                onClick={(): void => setForm({ ...form, isDialogOpen: true })}
-                variant="primary"
-              >
-                OK
-              </Button>
-            )}
+            <OKButton
+              disabled={!enabled || !form.diameters[0] || !form.lengths[0]}
+              onClick={(): void => setForm({ ...form, isDialogOpen: true })}
+              working={form.working}
+            />
           </Box>
         </Box>
       )}
