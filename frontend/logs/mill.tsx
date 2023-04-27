@@ -1,6 +1,7 @@
 import { LogsAppProps } from './app';
 
 import { createProducts } from '../actions';
+import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
@@ -8,6 +9,7 @@ import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
 import Datetime from '../datetime';
+import History from '../history';
 import OKButton from '../ok-button';
 
 import { Box } from '@airtable/blocks/ui';
@@ -49,7 +51,13 @@ export default function MillLog({
     data.log &&
     (stageId === data.stageIdBySymbol.PRE_MILL ||
       stageId === data.stageIdBySymbol.MILLED);
-
+  // 👇 already been processed at the desired stage?
+  const alreadyProcessed = findHistoryFor(
+    data.histories,
+    [data.stageBySymbol.MILLED],
+    data.tree?.getCellValueAsString(fld.TREE_ID),
+    data.log?.getCellValueAsString(fld.LOG_ID)
+  );
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
@@ -85,6 +93,18 @@ export default function MillLog({
   let tag;
   if (productType === 'Board') tag = 'boards';
   else if (productType === 'Slab') tag = 'slabs';
+  // 👇 YUCK! the suffix for the step
+  let suffix;
+  if (productType === 'Board') suffix = 'a';
+  else if (productType === 'Slab') suffix = 'b';
+  // 👇 YUCK! is the form disabled?
+  const disabled =
+    !enabled ||
+    (productType === 'Board' &&
+      (!form.counts[0] || !form.thicknesses[0] || !form.widths[0])) ||
+    (productType === 'Slab' &&
+      (!form.maxWidths[0] || !form.minWidths[0] || !form.thicknesses[0]));
+
   // 👇 build the form
   return (
     <Box className="divided-box">
@@ -99,182 +119,181 @@ export default function MillLog({
 
       {enabled ? (
         <Heading>
-          Mill {tag} from {data.log.getCellValue(fld.NAME)}
+          5{suffix}. Mill {tag} from {data.log.getCellValue(fld.NAME)}
         </Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Mill log into {tag}</Heading>
+        <Heading textColor={colors.GRAY}>
+          5{suffix}. Mill log into {tag}
+        </Heading>
       )}
 
-      <Box>
-        <table width="100%">
-          <thead>
-            <tr>
-              <th></th>
-              {productIndex.map((index) => (
-                <th key={`${index}`}>{`#${index + 1}`}</th>
-              ))}
-            </tr>
-          </thead>
+      {alreadyProcessed && <History ctx={ctx} history={alreadyProcessed} />}
 
-          {productType === 'Board' && (
-            <tbody>
+      {(!alreadyProcessed || enabled) && (
+        <Box>
+          <table width="100%">
+            <thead>
               <tr>
-                <td>Count</td>
+                <th></th>
                 {productIndex.map((index) => (
-                  <td
-                    key={`${index}`}
-                    width={`${100 / (productIndex.length + 1)}%`}
-                  >
-                    <Input
-                      onChange={(e): void => {
-                        const counts = [...form.counts];
-                        counts[index] = e.target.valueAsNumber;
-                        setForm({ ...form, counts });
-                      }}
-                      type="number"
-                      value={form.counts[index]}
-                    />
-                  </td>
+                  <th key={`${index}`}>{`#${index + 1}`}</th>
                 ))}
               </tr>
+            </thead>
 
-              <tr>
-                <td>Thickness (&frac14;&apos;s)</td>
-                {productIndex.map((index) => (
-                  <td
-                    key={`${index}`}
-                    width={`${100 / (productIndex.length + 1)}%`}
-                  >
-                    <Input
-                      onChange={(e): void => {
-                        const thicknesses = [...form.thicknesses];
-                        thicknesses[index] = e.target.valueAsNumber;
-                        setForm({ ...form, thicknesses });
-                      }}
-                      type="number"
-                      value={form.thicknesses[index]}
-                    />
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <td>Width (in)</td>
-                {productIndex.map((index) => (
-                  <td
-                    key={`${index}`}
-                    width={`${100 / (productIndex.length + 1)}%`}
-                  >
-                    <Input
-                      onChange={(e): void => {
-                        const widths = [...form.widths];
-                        widths[index] = e.target.valueAsNumber;
-                        setForm({ ...form, widths });
-                      }}
-                      type="number"
-                      value={form.widths[index]}
-                    />
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          )}
+            {productType === 'Board' && (
+              <tbody>
+                <tr>
+                  <td>Count</td>
+                  {productIndex.map((index) => (
+                    <td
+                      key={`${index}`}
+                      width={`${100 / (productIndex.length + 1)}%`}
+                    >
+                      <Input
+                        onChange={(e): void => {
+                          const counts = [...form.counts];
+                          counts[index] = e.target.valueAsNumber;
+                          setForm({ ...form, counts });
+                        }}
+                        type="number"
+                        value={form.counts[index]}
+                      />
+                    </td>
+                  ))}
+                </tr>
 
-          {productType === 'Slab' && (
-            <tbody>
-              <tr>
-                <td>Thickness (&frac14;&apos;s)</td>
-                {productIndex.map((index) => (
-                  <td
-                    key={`${index}`}
-                    width={`${100 / (productIndex.length + 1)}%`}
-                  >
-                    <Input
-                      onChange={(e): void => {
-                        const thicknesses = [...form.thicknesses];
-                        thicknesses[index] = e.target.valueAsNumber;
-                        setForm({ ...form, thicknesses });
-                      }}
-                      type="number"
-                      value={form.thicknesses[index]}
-                    />
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <td>Min width (in)</td>
-                {productIndex.map((index) => (
-                  <td
-                    key={`${index}`}
-                    width={`${100 / (productIndex.length + 1)}%`}
-                  >
-                    <Input
-                      onChange={(e): void => {
-                        const minWidths = [...form.minWidths];
-                        minWidths[index] = e.target.valueAsNumber;
-                        setForm({ ...form, minWidths });
-                      }}
-                      type="number"
-                      value={form.minWidths[index]}
-                    />
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <td>Max width (in)</td>
-                {productIndex.map((index) => (
-                  <td
-                    key={`${index}`}
-                    width={`${100 / (productIndex.length + 1)}%`}
-                  >
-                    <Input
-                      onChange={(e): void => {
-                        const maxWidths = [...form.maxWidths];
-                        maxWidths[index] = e.target.valueAsNumber;
-                        setForm({ ...form, maxWidths });
-                      }}
-                      type="number"
-                      value={form.maxWidths[index]}
-                    />
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          )}
-        </table>
-
-        <br />
-
-        <Box display="flex" justifyContent="space-between">
-          <FormField label="Log to mill" width="33%">
-            {enabled && (
-              <CellRenderer
-                field={ctx.LOGS.getFieldByName('Name')}
-                record={data.log}
-                shouldWrap={false}
-              />
+                <tr>
+                  <td>Thickness (&frac14;&apos;s)</td>
+                  {productIndex.map((index) => (
+                    <td
+                      key={`${index}`}
+                      width={`${100 / (productIndex.length + 1)}%`}
+                    >
+                      <Input
+                        onChange={(e): void => {
+                          const thicknesses = [...form.thicknesses];
+                          thicknesses[index] = e.target.valueAsNumber;
+                          setForm({ ...form, thicknesses });
+                        }}
+                        type="number"
+                        value={form.thicknesses[index]}
+                      />
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Width (in)</td>
+                  {productIndex.map((index) => (
+                    <td
+                      key={`${index}`}
+                      width={`${100 / (productIndex.length + 1)}%`}
+                    >
+                      <Input
+                        onChange={(e): void => {
+                          const widths = [...form.widths];
+                          widths[index] = e.target.valueAsNumber;
+                          setForm({ ...form, widths });
+                        }}
+                        type="number"
+                        value={form.widths[index]}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
             )}
-          </FormField>
-          <FormField label="When milling started" width="auto">
-            <Datetime
-              date={form.date}
-              onChange={(date): void => setForm({ ...form, date })}
+
+            {productType === 'Slab' && (
+              <tbody>
+                <tr>
+                  <td>Thickness (&frac14;&apos;s)</td>
+                  {productIndex.map((index) => (
+                    <td
+                      key={`${index}`}
+                      width={`${100 / (productIndex.length + 1)}%`}
+                    >
+                      <Input
+                        onChange={(e): void => {
+                          const thicknesses = [...form.thicknesses];
+                          thicknesses[index] = e.target.valueAsNumber;
+                          setForm({ ...form, thicknesses });
+                        }}
+                        type="number"
+                        value={form.thicknesses[index]}
+                      />
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Min width (in)</td>
+                  {productIndex.map((index) => (
+                    <td
+                      key={`${index}`}
+                      width={`${100 / (productIndex.length + 1)}%`}
+                    >
+                      <Input
+                        onChange={(e): void => {
+                          const minWidths = [...form.minWidths];
+                          minWidths[index] = e.target.valueAsNumber;
+                          setForm({ ...form, minWidths });
+                        }}
+                        type="number"
+                        value={form.minWidths[index]}
+                      />
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Max width (in)</td>
+                  {productIndex.map((index) => (
+                    <td
+                      key={`${index}`}
+                      width={`${100 / (productIndex.length + 1)}%`}
+                    >
+                      <Input
+                        onChange={(e): void => {
+                          const maxWidths = [...form.maxWidths];
+                          maxWidths[index] = e.target.valueAsNumber;
+                          setForm({ ...form, maxWidths });
+                        }}
+                        type="number"
+                        value={form.maxWidths[index]}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            )}
+          </table>
+
+          <br />
+
+          <Box display="flex" justifyContent="space-between">
+            <FormField label="Log to mill" width="33%">
+              {enabled && (
+                <CellRenderer
+                  field={ctx.LOGS.getFieldByName('Name')}
+                  record={data.log}
+                  shouldWrap={false}
+                />
+              )}
+            </FormField>
+            <FormField label="When milling started" width="auto">
+              <Datetime
+                date={form.date}
+                disabled={disabled}
+                onChange={(date): void => setForm({ ...form, date })}
+              />
+            </FormField>
+            <OKButton
+              disabled={disabled}
+              onClick={(): void => setForm({ ...form, isDialogOpen: true })}
+              working={form.working}
             />
-          </FormField>
-          <OKButton
-            disabled={
-              !enabled ||
-              (productType === 'Board' &&
-                (!form.counts[0] || !form.thicknesses[0] || !form.widths[0])) ||
-              (productType === 'Slab' &&
-                (!form.maxWidths[0] ||
-                  !form.minWidths[0] ||
-                  !form.thicknesses[0]))
-            }
-            onClick={(): void => setForm({ ...form, isDialogOpen: true })}
-            working={form.working}
-          />
+          </Box>
         </Box>
-      </Box>
+      )}
     </Box>
   );
 }

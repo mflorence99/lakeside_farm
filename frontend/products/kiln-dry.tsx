@@ -1,5 +1,6 @@
 import { AppProps } from '../app';
 
+import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
@@ -8,6 +9,7 @@ import { iDryTempOptions } from '../constants';
 import { updateRecord } from '../actions';
 
 import Datetime from '../datetime';
+import History from '../history';
 import OKButton from '../ok-button';
 
 import { Box } from '@airtable/blocks/ui';
@@ -35,6 +37,14 @@ export default function KilnDryProduct({ ctx, data }: AppProps): JSX.Element {
     data.product &&
     (stageId === data.stageIdBySymbol.AIR_DRYING ||
       stageId === data.stageIdBySymbol.KILN_DRYING);
+  // 👇 already been processed at the desired stage?
+  const alreadyProcessed = findHistoryFor(
+    data.histories,
+    [data.stageBySymbol.KILN_DRYING],
+    data.tree?.getCellValueAsString(fld.TREE_ID),
+    data.log?.getCellValueAsString(fld.LOG_ID),
+    data.product?.getCellValueAsString(fld.PRODUCT_ID)
+  );
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -58,48 +68,58 @@ export default function KilnDryProduct({ ctx, data }: AppProps): JSX.Element {
   return (
     <Box className="divided-box">
       {enabled ? (
-        <Heading>Kiln dry {data.product.getCellValue(fld.NAME)}</Heading>
+        <Heading>7. Kiln dry {data.product.getCellValue(fld.NAME)}</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Kiln dry product</Heading>
+        <Heading textColor={colors.GRAY}>7. Kiln dry product</Heading>
       )}
 
-      <Box display="flex" justifyContent="space-around">
-        <FormField label="iDry Power" width="8rem">
-          <Select
-            onChange={(v: string): void => setForm({ ...form, iDryPower: v })}
-            options={iDryPowerOptions}
-            value={form.iDryPower}
-          />
-        </FormField>
-        <FormField label="iDry Temp" width="8rem">
-          <Select
-            onChange={(v: string): void => setForm({ ...form, iDryTemp: v })}
-            options={iDryTempOptions}
-            value={form.iDryTemp}
-          />
-        </FormField>
-      </Box>
+      {alreadyProcessed && <History ctx={ctx} history={alreadyProcessed} />}
 
-      <br />
+      {(!alreadyProcessed || enabled) && (
+        <Box>
+          <Box display="flex" justifyContent="space-around">
+            <FormField label="iDry Power" width="8rem">
+              <Select
+                onChange={(v: string): void =>
+                  setForm({ ...form, iDryPower: v })
+                }
+                options={iDryPowerOptions}
+                value={form.iDryPower}
+              />
+            </FormField>
+            <FormField label="iDry Temp" width="8rem">
+              <Select
+                onChange={(v: string): void =>
+                  setForm({ ...form, iDryTemp: v })
+                }
+                options={iDryTempOptions}
+                value={form.iDryTemp}
+              />
+            </FormField>
+          </Box>
 
-      <Box display="flex" justifyContent="space-between">
-        <FormField label="Product to kiln dry" width="33%">
-          {enabled && (
-            <CellRenderer
-              field={ctx.PRODUCTS.getFieldByName(fld.NAME)}
-              record={data.product}
-              shouldWrap={false}
-            />
-          )}
-        </FormField>
-        <FormField label="When kiln drying started" width="auto">
-          <Datetime
-            date={form.date}
-            onChange={(date): void => setForm({ ...form, date })}
-          />
-        </FormField>
-        <OKButton disabled={!enabled} onClick={ok} working={form.working} />
-      </Box>
+          <br />
+
+          <Box display="flex" justifyContent="space-between">
+            <FormField label="Product to kiln dry" width="33%">
+              {enabled && (
+                <CellRenderer
+                  field={ctx.PRODUCTS.getFieldByName(fld.NAME)}
+                  record={data.product}
+                  shouldWrap={false}
+                />
+              )}
+            </FormField>
+            <FormField label="When kiln drying started" width="auto">
+              <Datetime
+                date={form.date}
+                onChange={(date): void => setForm({ ...form, date })}
+              />
+            </FormField>
+            <OKButton disabled={!enabled} onClick={ok} working={form.working} />
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 }

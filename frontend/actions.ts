@@ -79,7 +79,7 @@ export async function completeMilestone(
     productId = ''
   }: CompleteMilestoneParams
 ): Promise<Record> {
-  console.log('🔶 completeMilestone', arguments[0]);
+  console.log('🔶 completeMilestone', arguments[1]);
   // 👇 find the milestone for this tree, this log, this product
   const treeId = data.tree.getCellValueAsString(fld.TREE_ID);
   const milestone = findHistoryFor(
@@ -116,7 +116,7 @@ export async function createLogs(
   { ctx, data }: AppProps,
   { date, diameters, lengths, stageId }: CreateLogsParams
 ): Promise<void> {
-  console.log('🔶 createLogs', arguments[0]);
+  console.log('🔶 createLogs', arguments[1]);
   // 👇 create each log
   for (let ix = 0; ix < lengths.length; ix++) {
     if (lengths[ix]) {
@@ -169,7 +169,7 @@ export async function createMilestone(
     treeId
   }: CreateMilestoneParams
 ): Promise<string> {
-  console.log('🔶 createMilestone', arguments[0]);
+  console.log('🔶 createMilestone', arguments[1]);
   return await ctx.HISTORY.createRecordAsync({
     [fld.DATE_ENDED]: date,
     [fld.DATE_ENDED_GANTT]: date,
@@ -201,7 +201,7 @@ export async function createProducts(
     widths
   }: CreateProductsParams
 ): Promise<void> {
-  console.log('🔶 createProducts', arguments[0]);
+  console.log('🔶 createProducts', arguments[1]);
   // 👇 create each product
   for (let ix = 0; ix < thicknesses.length; ix++) {
     if (thicknesses[ix]) {
@@ -263,7 +263,7 @@ export async function createTree(
   { ctx, data }: AppProps,
   { date, speciesId, stageId }: CreateTreeParams
 ): Promise<string> {
-  console.log('🔶 createTree', arguments[0]);
+  console.log('🔶 createTree', arguments[1]);
   // 👇 first create the tree
   const treeId = await ctx.TREES.createRecordAsync({
     [fld.SPECIES]: [{ id: speciesId }],
@@ -315,7 +315,7 @@ export async function updateRecord(
     table
   }: UpdateRecordParams
 ): Promise<void> {
-  console.log(`🔶 updateRecord in ${table.name}`, arguments[0]);
+  console.log(`🔶 updateRecord in ${table.name}`, arguments[1]);
   // 👇 first update the record
   await table.updateRecordAsync(record, {
     [fld.STAGE]: [{ id: stageId }]

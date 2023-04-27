@@ -13,7 +13,6 @@ import { CellRenderer } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 
-import { colors } from '@airtable/blocks/ui';
 import { expandRecord } from '@airtable/blocks/ui';
 import { useState } from 'react';
 
@@ -45,32 +44,35 @@ export default function ScrapProduct({ ctx, data }: AppProps): JSX.Element {
     setForm({ ...form, working: false });
   };
   // 👇 build the form
-  return (
-    <Box>
-      {enabled ? (
+  if (enabled)
+    return (
+      <Box>
         <Heading>Scrap {data.product.getCellValue(fld.NAME)}</Heading>
-      ) : (
-        <Heading textColor={colors.GRAY}>Scrap product</Heading>
-      )}
 
-      <Box display="flex" justifyContent="space-between">
-        <FormField label="Product to scrap" width="33%">
-          {enabled && (
-            <CellRenderer
-              field={ctx.PRODUCTS.getFieldByName(fld.NAME)}
-              record={data.product}
-              shouldWrap={false}
+        <Box display="flex" justifyContent="space-between">
+          <FormField label="Product to scrap" width="33%">
+            {enabled && (
+              <CellRenderer
+                field={ctx.PRODUCTS.getFieldByName(fld.NAME)}
+                record={data.product}
+                shouldWrap={false}
+              />
+            )}
+          </FormField>
+          <FormField label="When scrapped" width="auto">
+            <Datetime
+              date={form.date}
+              onChange={(date): void => setForm({ ...form, date })}
             />
-          )}
-        </FormField>
-        <FormField label="When scrapped" width="auto">
-          <Datetime
-            date={form.date}
-            onChange={(date): void => setForm({ ...form, date })}
+          </FormField>
+          <OKButton
+            disabled={!enabled}
+            onClick={ok}
+            working={form.working}
+            variant="danger"
           />
-        </FormField>
-        <OKButton disabled={!enabled} onClick={ok} working={form.working} />
+        </Box>
       </Box>
-    </Box>
-  );
+    );
+  else return null;
 }

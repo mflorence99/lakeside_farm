@@ -25,8 +25,8 @@ export default function LogsApp({ ctx, data }: AppProps): JSX.Element {
   // 👇 build the app
   return (
     <Box>
-      <MillLog ctx={ctx} data={data} productType="Slab" />
       <MillLog ctx={ctx} data={data} productType="Board" />
+      <MillLog ctx={ctx} data={data} productType="Slab" />
       <ScrapLog ctx={ctx} data={data} />
     </Box>
   );

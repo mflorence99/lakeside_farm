@@ -71,12 +71,7 @@ export default function ScrapTree({ ctx, data }: AppProps): JSX.Element {
               onChange={(date): void => setForm({ ...form, date })}
             />
           </FormField>
-          <OKButton
-            disabled={!enabled}
-            onClick={ok}
-            working={form.working}
-            variant="danger"
-          />
+          <OKButton onClick={ok} working={form.working} variant="danger" />
         </Box>
       </Box>
     );

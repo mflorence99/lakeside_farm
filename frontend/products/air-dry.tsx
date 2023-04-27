@@ -1,11 +1,13 @@
 import { AppProps } from '../app';
 
+import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
 import { forHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
 import Datetime from '../datetime';
+import History from '../history';
 import OKButton from '../ok-button';
 
 import { Box } from '@airtable/blocks/ui';
@@ -30,6 +32,14 @@ export default function AirDryProduct({ ctx, data }: AppProps): JSX.Element {
     data.product &&
     (stageId === data.stageIdBySymbol.PRE_DRY ||
       stageId === data.stageIdBySymbol.AIR_DRYING);
+  // 👇 already been processed at the desired stage?
+  const alreadyProcessed = findHistoryFor(
+    data.histories,
+    [data.stageBySymbol.AIR_DRYING],
+    data.tree?.getCellValueAsString(fld.TREE_ID),
+    data.log?.getCellValueAsString(fld.LOG_ID),
+    data.product?.getCellValueAsString(fld.PRODUCT_ID)
+  );
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
@@ -51,29 +61,33 @@ export default function AirDryProduct({ ctx, data }: AppProps): JSX.Element {
   return (
     <Box className="divided-box">
       {enabled ? (
-        <Heading>Air dry {data.product.getCellValue(fld.NAME)}</Heading>
+        <Heading>6. Air dry {data.product.getCellValue(fld.NAME)}</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Air dry product</Heading>
+        <Heading textColor={colors.GRAY}>6. Air dry product</Heading>
       )}
 
-      <Box display="flex" justifyContent="space-between">
-        <FormField label="Product to air dry" width="33%">
-          {enabled && (
-            <CellRenderer
-              field={ctx.PRODUCTS.getFieldByName(fld.NAME)}
-              record={data.product}
-              shouldWrap={false}
+      {alreadyProcessed && <History ctx={ctx} history={alreadyProcessed} />}
+
+      {(!alreadyProcessed || enabled) && (
+        <Box display="flex" justifyContent="space-between">
+          <FormField label="Product to air dry" width="33%">
+            {enabled && (
+              <CellRenderer
+                field={ctx.PRODUCTS.getFieldByName(fld.NAME)}
+                record={data.product}
+                shouldWrap={false}
+              />
+            )}
+          </FormField>
+          <FormField label="When air drying started" width="auto">
+            <Datetime
+              date={form.date}
+              onChange={(date): void => setForm({ ...form, date })}
             />
-          )}
-        </FormField>
-        <FormField label="When air drying started" width="auto">
-          <Datetime
-            date={form.date}
-            onChange={(date): void => setForm({ ...form, date })}
-          />
-        </FormField>
-        <OKButton disabled={!enabled} onClick={ok} working={form.working} />
-      </Box>
+          </FormField>
+          <OKButton disabled={!enabled} onClick={ok} working={form.working} />
+        </Box>
+      )}
     </Box>
   );
 }

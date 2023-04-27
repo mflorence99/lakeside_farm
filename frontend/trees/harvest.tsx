@@ -59,9 +59,9 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
   return (
     <Box className="divided-box">
       {enabled ? (
-        <Heading>Harvest {data.tree.getCellValue(fld.NAME)}</Heading>
+        <Heading>2. Harvest {data.tree.getCellValue(fld.NAME)}</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Harvest standing tree</Heading>
+        <Heading textColor={colors.GRAY}>2. Harvest standing tree</Heading>
       )}
 
       {alreadyProcessed ? (
@@ -80,6 +80,7 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
           <FormField label="When harvested" width="auto">
             <Datetime
               date={form.date}
+              disabled={!enabled}
               onChange={(date): void => setForm({ ...form, date })}
             />
           </FormField>

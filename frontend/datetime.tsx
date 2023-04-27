@@ -8,7 +8,11 @@ import { useState } from 'react';
 
 import React from 'react';
 
-export default function Datetime({ date, onChange }): JSX.Element {
+export default function Datetime({
+  date,
+  disabled = false,
+  onChange
+}): JSX.Element {
   const [error, setError] = useState(null);
   const handleChange = (date): void => {
     const isValid = dayjs(date, 'YYYY-MM-DD[T]HH:MM', true).isValid();
@@ -21,6 +25,7 @@ export default function Datetime({ date, onChange }): JSX.Element {
     <Box>
       <input
         className="datetime-input"
+        disabled={disabled}
         onChange={(e): void => handleChange(e.target.value)}
         type="datetime-local"
         value={date}

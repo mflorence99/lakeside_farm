@@ -14,7 +14,6 @@ import { CellRenderer } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
 import { Heading } from '@airtable/blocks/ui';
 
-import { colors } from '@airtable/blocks/ui';
 import { expandRecord } from '@airtable/blocks/ui';
 import { useState } from 'react';
 
@@ -52,37 +51,35 @@ export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
     setForm({ ...form, working: false });
   };
   // 👇 build the form
-  return (
-    <Box>
-      {enabled ? (
+  if (enabled)
+    return (
+      <Box>
         <Heading>Scrap {data.log.getCellValue(fld.NAME)}</Heading>
-      ) : (
-        <Heading textColor={colors.GRAY}>Scrap log</Heading>
-      )}
 
-      <Box display="flex" justifyContent="space-between">
-        <FormField label="Log to scrap" width="33%">
-          {enabled && (
-            <CellRenderer
-              field={ctx.LOGS.getFieldByName(fld.NAME)}
-              record={data.log}
-              shouldWrap={false}
+        <Box display="flex" justifyContent="space-between">
+          <FormField label="Log to scrap" width="33%">
+            {enabled && (
+              <CellRenderer
+                field={ctx.LOGS.getFieldByName(fld.NAME)}
+                record={data.log}
+                shouldWrap={false}
+              />
+            )}
+          </FormField>
+          <FormField label="When scrapped" width="auto">
+            <Datetime
+              date={form.date}
+              onChange={(date): void => setForm({ ...form, date })}
             />
-          )}
-        </FormField>
-        <FormField label="When scrapped" width="auto">
-          <Datetime
-            date={form.date}
-            onChange={(date): void => setForm({ ...form, date })}
+          </FormField>
+          <OKButton
+            disabled={!enabled}
+            onClick={ok}
+            working={form.working}
+            variant="danger"
           />
-        </FormField>
-        <OKButton
-          disabled={!enabled}
-          onClick={ok}
-          working={form.working}
-          variant="danger"
-        />
+        </Box>
       </Box>
-    </Box>
-  );
+    );
+  else return null;
 }

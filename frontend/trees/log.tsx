@@ -71,6 +71,8 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
     expandRecord(data.tree);
     setForm({ ...form, isDialogOpen: false, working: false });
   };
+  // 👇 is the form disabled?
+  const disabled = !enabled || !form.diameters[0] || !form.lengths[0];
   // 👇 build the form
   return (
     <Box className="divided-box">
@@ -84,9 +86,11 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
       )}
 
       {enabled ? (
-        <Heading>Cut {data.tree.getCellValue(fld.NAME)} into logs</Heading>
+        <Heading>3. Cut {data.tree.getCellValue(fld.NAME)} into logs</Heading>
       ) : (
-        <Heading textColor={colors.GRAY}>Cut harvested tree into logs</Heading>
+        <Heading textColor={colors.GRAY}>
+          3. Cut harvested tree into logs
+        </Heading>
       )}
 
       {alreadyProcessed ? (
@@ -159,11 +163,12 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
             <FormField label="When logged" width="auto">
               <Datetime
                 date={form.date}
+                disabled={disabled}
                 onChange={(date): void => setForm({ ...form, date })}
               />
             </FormField>
             <OKButton
-              disabled={!enabled || !form.diameters[0] || !form.lengths[0]}
+              disabled={disabled}
               onClick={(): void => setForm({ ...form, isDialogOpen: true })}
               working={form.working}
             />

@@ -5,7 +5,7 @@ import { Loader } from '@airtable/blocks/ui';
 import React from 'react';
 
 export default function OKButton({
-  disabled,
+  disabled = false,
   onClick,
   variant = 'primary',
   working
