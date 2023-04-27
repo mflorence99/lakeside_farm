@@ -4,6 +4,8 @@ import { createTree } from '../actions';
 import { forHTMLDatetime } from '../helpers';
 import { getRecordById } from '../actions';
 
+import Datetime from '../datetime';
+
 import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
 import { FormField } from '@airtable/blocks/ui';
@@ -58,11 +60,9 @@ export default function CreateTree({ ctx, data }: AppProps): JSX.Element {
           />
         </FormField>
         <FormField label="When identified" width="auto">
-          <input
-            className="datetime-input"
-            onChange={(e): void => setForm({ ...form, date: e.target.value })}
-            type="datetime-local"
-            value={form.date}
+          <Datetime
+            date={form.date}
+            onChange={(date): void => setForm({ ...form, date })}
           />
         </FormField>
         {form.working ? (

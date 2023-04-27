@@ -13,17 +13,27 @@ export function findHistoryFor(
   stages: string[],
   treeId: string,
   logId = '',
-  productId = ''
+  productId = '',
+  supplemental?: (history: Record) => boolean
 ): Record {
   return histories.find((history) => {
     const matchesTree = treeId === history.getCellValueAsString(fld.TREE_ID);
     const matchesLog = logId === history.getCellValueAsString(fld.LOG_ID);
     const matchesProduct =
       productId === history.getCellValueAsString(fld.PRODUCT_ID);
-    const matchesStage = stages.some((stage) =>
-      history.getCellValueAsString(fld.STAGE).endsWith(stage)
+    const matchesStage =
+      stages.length === 0 ||
+      stages.some((stage) =>
+        history.getCellValueAsString(fld.STAGE).endsWith(stage)
+      );
+    const matchesSupplemental = !supplemental || supplemental(history);
+    return (
+      matchesTree &&
+      matchesLog &&
+      matchesProduct &&
+      matchesStage &&
+      matchesSupplemental
     );
-    return matchesTree && matchesLog && matchesProduct && matchesStage;
   });
 }
 

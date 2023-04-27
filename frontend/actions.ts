@@ -1,9 +1,9 @@
 /* eslint-disable prefer-rest-params */
 import { AppProps } from './app';
 
+import { findHistoryFor } from './helpers';
 import { fld } from './constants';
 import { getCellValueAsDayjs } from './helpers';
-import { getLinkCellId } from './helpers';
 
 import * as dayjs from 'dayjs';
 
@@ -13,8 +13,8 @@ import { Table } from '@airtable/blocks/models';
 type CompleteMilestoneParams = {
   date: string;
   leaveOpen?: boolean;
-  logId: string;
-  productId: string;
+  logId?: string;
+  productId?: string;
 };
 
 type CreateLogsParams = {
@@ -28,9 +28,9 @@ type CreateMilestoneParams = {
   date: string;
   iDryPower?: string;
   iDryTemp?: string;
-  logId: string;
+  logId?: string;
   predecessor?: Record;
-  productId: string;
+  productId?: string;
   stageId: string;
   treeId: string;
 };
@@ -68,28 +68,28 @@ type UpdateRecordParams = {
 
 // ///////////////////////////////////////////////////////////////////////////
 // 🔶 completeMilestone
-//
-// 🔥 we COULD pass in data.histories instead of re-reading them
-//    via tree.selectLinkedRecordsFromCellAsync -- let's see how it looks
-//    when we're more code-complete -- also use findHistoryFor in helpers.ts
 // ///////////////////////////////////////////////////////////////////////////
 
 export async function completeMilestone(
   { ctx, data }: AppProps,
-  { date, leaveOpen, logId, productId }: CompleteMilestoneParams
+  {
+    date,
+    leaveOpen = false,
+    logId = '',
+    productId = ''
+  }: CompleteMilestoneParams
 ): Promise<Record> {
   console.log('🔶 completeMilestone', arguments[0]);
-  // 👇 the entire history is linked to the tree
-  const query = await data.tree.selectLinkedRecordsFromCellAsync(fld.HISTORY);
   // 👇 find the milestone for this tree, this log, this product
-  const milestone = query.records.find((history) => {
-    const matchesLog = logId === history.getCellValueAsString(fld.LOG_ID);
-    const matchesProduct =
-      productId === history.getCellValueAsString(fld.PRODUCT_ID);
-    const matchesTree = data.tree.id === getLinkCellId(history, fld.TREE);
-    const notStarted = !history.getCellValue(fld.DATE_STARTED);
-    return matchesLog && matchesProduct && matchesTree && notStarted;
-  });
+  const treeId = data.tree.getCellValueAsString(fld.TREE_ID);
+  const milestone = findHistoryFor(
+    data.histories,
+    [], // 👈 any stage
+    treeId,
+    logId,
+    productId,
+    (history) => !history.getCellValue(fld.DATE_STARTED)
+  );
   // 👇 if the milestone was found, complete it
   //    to satisfy the Gantt chart, we move the end date back one day
   //    to avoid overlap on the chart
@@ -98,9 +98,6 @@ export async function completeMilestone(
     let ganttEnd = dayjs(date);
     const sameDay = ganttStart.isSame(ganttEnd, 'day');
     if (!sameDay) ganttEnd = ganttEnd.subtract(1, 'day');
-    // console.log(
-    //   `ganttStart=${ganttStart.toISOString()} ganttEnd=${ganttEnd.toISOString()} sameDay=${sameDay}`
-    // );
     await ctx.HISTORY.updateRecordAsync(milestone, {
       [fld.DATE_STARTED]: milestone.getCellValue(fld.DATE_ENDED),
       [fld.DATE_ENDED]: date,
@@ -108,8 +105,6 @@ export async function completeMilestone(
       [fld.DATE_ENDED_GANTT]: ganttEnd.toISOString()
     });
   }
-  // 👇 done with history data
-  query.unloadData();
   return milestone;
 }
 
@@ -139,9 +134,7 @@ export async function createLogs(
         { ctx, data },
         {
           date,
-          leaveOpen: true,
-          logId: '',
-          productId: ''
+          leaveOpen: true
         }
       );
       // 👇 then initialize its history
@@ -151,7 +144,6 @@ export async function createLogs(
           date,
           logId,
           predecessor,
-          productId: '',
           stageId,
           treeId: data.tree.id
         }
@@ -170,9 +162,9 @@ export async function createMilestone(
     date,
     iDryPower,
     iDryTemp,
-    logId,
+    logId = '',
     predecessor,
-    productId,
+    productId = '',
     stageId,
     treeId
   }: CreateMilestoneParams
@@ -244,8 +236,7 @@ export async function createProducts(
         {
           date,
           leaveOpen: true,
-          logId,
-          productId: ''
+          logId
         }
       );
       // 👇 then initialize its history
@@ -283,8 +274,6 @@ export async function createTree(
     { ctx, data },
     {
       date,
-      logId: '',
-      productId: '',
       stageId,
       treeId
     }

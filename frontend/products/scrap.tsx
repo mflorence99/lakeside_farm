@@ -5,6 +5,8 @@ import { forHTMLDatetime } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
+import Datetime from '../datetime';
+
 import { Box } from '@airtable/blocks/ui';
 import { Button } from '@airtable/blocks/ui';
 import { CellRenderer } from '@airtable/blocks/ui';
@@ -63,11 +65,9 @@ export default function ScrapProduct({ ctx, data }: AppProps): JSX.Element {
           )}
         </FormField>
         <FormField label="When scrapped" width="auto">
-          <input
-            className="datetime-input"
-            onChange={(e): void => setForm({ ...form, date: e.target.value })}
-            type="datetime-local"
-            value={form.date}
+          <Datetime
+            date={form.date}
+            onChange={(date): void => setForm({ ...form, date })}
           />
         </FormField>
         {form.working ? (
