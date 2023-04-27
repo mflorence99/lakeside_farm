@@ -48,25 +48,26 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
-    await updateRecord({
-      date: form.date,
-      history: ctx.HISTORY,
-      logId: '',
-      productId: '',
-      record: data.tree,
-      stageId: data.stageIdBySymbol.LOGGED,
-      table: ctx.TREES,
-      tree: data.tree
-    });
-    await createLogs({
-      date: form.date,
-      diameters: form.diameters,
-      history: ctx.HISTORY,
-      lengths: form.lengths,
-      logs: ctx.LOGS,
-      stageId: data.stageIdBySymbol.PRE_MILL,
-      tree: data.tree
-    });
+    await updateRecord(
+      { ctx, data },
+      {
+        date: form.date,
+        logId: '',
+        productId: '',
+        record: data.tree,
+        stageId: data.stageIdBySymbol.LOGGED,
+        table: ctx.TREES
+      }
+    );
+    await createLogs(
+      { ctx, data },
+      {
+        date: form.date,
+        diameters: form.diameters,
+        lengths: form.lengths,
+        stageId: data.stageIdBySymbol.PRE_MILL
+      }
+    );
     expandRecord(data.tree);
     setForm({ ...form, isDialogOpen: false, working: false });
   };

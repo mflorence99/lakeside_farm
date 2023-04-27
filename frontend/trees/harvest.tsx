@@ -41,16 +41,17 @@ export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
-    await updateRecord({
-      date: form.date,
-      history: ctx.HISTORY,
-      logId: '',
-      productId: '',
-      record: data.tree,
-      stageId: data.stageIdBySymbol.HARVESTED,
-      table: ctx.TREES,
-      tree: data.tree
-    });
+    await updateRecord(
+      { ctx, data },
+      {
+        date: form.date,
+        logId: '',
+        productId: '',
+        record: data.tree,
+        stageId: data.stageIdBySymbol.HARVESTED,
+        table: ctx.TREES
+      }
+    );
     expandRecord(data.tree);
     setForm({ ...form, working: false });
   };

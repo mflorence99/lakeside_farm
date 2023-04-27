@@ -52,31 +52,31 @@ export default function MillLog({
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, isDialogOpen: false, working: true });
-    await updateRecord({
-      date: form.date,
-      history: ctx.HISTORY,
-      logId: data.log.getCellValueAsString(fld.LOG_ID),
-      productId: '',
-      record: data.log,
-      stageId: data.stageIdBySymbol.MILLED,
-      table: ctx.LOGS,
-      tree: data.tree
-    });
-    await createProducts({
-      counts: form.counts,
-      date: form.date,
-      history: ctx.HISTORY,
-      log: data.log,
-      logId: data.log.getCellValueAsString(fld.LOG_ID),
-      maxWidths: form.maxWidths,
-      minWidths: form.minWidths,
-      products: ctx.PRODUCTS,
-      stageId: data.stageIdBySymbol.PRE_DRY,
-      thicknesses: form.thicknesses,
-      tree: data.tree,
-      type: productType,
-      widths: form.widths
-    });
+    await updateRecord(
+      { ctx, data },
+      {
+        date: form.date,
+        logId: data.log.getCellValueAsString(fld.LOG_ID),
+        productId: '',
+        record: data.log,
+        stageId: data.stageIdBySymbol.MILLED,
+        table: ctx.LOGS
+      }
+    );
+    await createProducts(
+      { ctx, data },
+      {
+        counts: form.counts,
+        date: form.date,
+        logId: data.log.getCellValueAsString(fld.LOG_ID),
+        maxWidths: form.maxWidths,
+        minWidths: form.minWidths,
+        stageId: data.stageIdBySymbol.PRE_DRY,
+        thicknesses: form.thicknesses,
+        type: productType,
+        widths: form.widths
+      }
+    );
     expandRecord(data.log);
     setForm({ ...form, isDialogOpen: false, working: false });
   };

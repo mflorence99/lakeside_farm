@@ -28,13 +28,14 @@ export default function CreateTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
-    const treeId = await createTree({
-      date: form.date,
-      history: ctx.HISTORY,
-      speciesId: form.speciesId,
-      stageId,
-      trees: ctx.TREES
-    });
+    const treeId = await createTree(
+      { ctx, data },
+      {
+        date: form.date,
+        speciesId: form.speciesId,
+        stageId
+      }
+    );
     expandRecord(
       await getRecordById({
         recordId: treeId,

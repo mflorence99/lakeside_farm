@@ -29,16 +29,17 @@ export default function FlattenProduct({ ctx, data }: AppProps): JSX.Element {
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
-    await updateRecord({
-      date: form.date,
-      history: ctx.HISTORY,
-      logId: data.log.getCellValueAsString(fld.LOG_ID),
-      productId: data.product.getCellValueAsString(fld.PRODUCT_ID),
-      record: data.product,
-      stageId: data.stageIdBySymbol.FLATTENING,
-      table: ctx.PRODUCTS,
-      tree: data.tree
-    });
+    await updateRecord(
+      { ctx, data },
+      {
+        date: form.date,
+        logId: data.log.getCellValueAsString(fld.LOG_ID),
+        productId: data.product.getCellValueAsString(fld.PRODUCT_ID),
+        record: data.product,
+        stageId: data.stageIdBySymbol.FLATTENING,
+        table: ctx.PRODUCTS
+      }
+    );
     expandRecord(data.product);
     setForm({ ...form, working: false });
   };

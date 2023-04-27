@@ -36,16 +36,17 @@ export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
   // 👇 when OK is clicked
   const ok = async (): Promise<void> => {
     setForm({ ...form, working: true });
-    await updateRecord({
-      date: form.date,
-      history: ctx.HISTORY,
-      logId: data.log.getCellValueAsString(fld.LOG_ID),
-      productId: '',
-      record: data.log,
-      stageId: data.stageIdBySymbol.SCRAPPED,
-      table: ctx.LOGS,
-      tree: data.tree
-    });
+    await updateRecord(
+      { ctx, data },
+      {
+        date: form.date,
+        logId: data.log.getCellValueAsString(fld.LOG_ID),
+        productId: '',
+        record: data.log,
+        stageId: data.stageIdBySymbol.SCRAPPED,
+        table: ctx.LOGS
+      }
+    );
     expandRecord(data.log);
     setForm({ ...form, working: false });
   };
