@@ -113,7 +113,9 @@ export default function KilnDryProduct({ ctx, data }: AppProps): JSX.Element {
             <FormField label="When kiln drying started" width="auto">
               <Datetime
                 date={form.date}
+                disabled={!enabled}
                 onChange={(date): void => setForm({ ...form, date })}
+                type="datetime-local"
               />
             </FormField>
             <OKButton disabled={!enabled} onClick={ok} working={form.working} />

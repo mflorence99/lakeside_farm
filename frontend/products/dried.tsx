@@ -2,7 +2,7 @@ import { AppProps } from '../app';
 
 import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
@@ -24,7 +24,7 @@ import React from 'react';
 export default function DriedProduct({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     working: false
   });
   const stageId = getLinkCellId(data.product, fld.STAGE);
@@ -35,7 +35,7 @@ export default function DriedProduct({ ctx, data }: AppProps): JSX.Element {
   // 👇 already been processed at the desired stage?
   const alreadyProcessed = findHistoryFor(
     data.histories,
-    [data.stageBySymbol.KILN_DRYING],
+    [data.stageBySymbol.PRE_FLATTEN],
     data.tree?.getCellValueAsString(fld.TREE_ID),
     data.log?.getCellValueAsString(fld.LOG_ID),
     data.product?.getCellValueAsString(fld.PRODUCT_ID)
@@ -84,6 +84,7 @@ export default function DriedProduct({ ctx, data }: AppProps): JSX.Element {
           <FormField label="When drying completed" width="auto">
             <Datetime
               date={form.date}
+              disabled={!enabled}
               onChange={(date): void => setForm({ ...form, date })}
             />
           </FormField>

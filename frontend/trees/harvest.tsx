@@ -2,7 +2,7 @@ import { AppProps } from '../app';
 
 import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
@@ -25,7 +25,7 @@ import React from 'react';
 export default function HarvestTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     working: false
   });
   const numLogs = getCellValueAsNumber(data.tree, fld.NUM_LOGS);

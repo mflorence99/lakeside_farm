@@ -11,7 +11,8 @@ import React from 'react';
 export default function Datetime({
   date,
   disabled = false,
-  onChange
+  onChange,
+  type = 'date'
 }): JSX.Element {
   const [error, setError] = useState(null);
   const handleChange = (date): void => {
@@ -19,7 +20,7 @@ export default function Datetime({
     if (isValid) {
       setError(null);
       onChange(date);
-    } else setError('Please enter a valid date');
+    } else setError('Invalid date');
   };
   return (
     <Box>
@@ -27,7 +28,7 @@ export default function Datetime({
         className="datetime-input"
         disabled={disabled}
         onChange={(e): void => handleChange(e.target.value)}
-        type="datetime-local"
+        type={type}
         value={date}
       />
       {error && <Text textColor={colors.RED}>{error}</Text>}

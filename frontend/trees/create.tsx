@@ -1,7 +1,7 @@
 import { AppProps } from '../app';
 
 import { createTree } from '../actions';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getRecordById } from '../actions';
 
 import Datetime from '../datetime';
@@ -20,7 +20,7 @@ import React from 'react';
 export default function CreateTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     speciesId: null,
     working: false
   });

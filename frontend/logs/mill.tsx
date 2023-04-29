@@ -3,7 +3,7 @@ import { LogsAppProps } from './app';
 import { createProducts } from '../actions';
 import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
@@ -34,7 +34,7 @@ export default function MillLog({
   const productIndex = [0, 1, 2, 3, 4];
   const [form, setForm] = useState({
     counts: new Array(productIndex.length).fill(''),
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     isDialogOpen: false,
     maxWidths: new Array(productIndex.length).fill(''),
     minWidths: new Array(productIndex.length).fill(''),

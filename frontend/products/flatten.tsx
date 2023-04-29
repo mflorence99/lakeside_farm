@@ -2,7 +2,7 @@ import { AppProps } from '../app';
 
 import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
@@ -24,7 +24,7 @@ import React from 'react';
 export default function FlattenProduct({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     working: false
   });
   const stageId = getLinkCellId(data.product, fld.STAGE);
@@ -79,6 +79,7 @@ export default function FlattenProduct({ ctx, data }: AppProps): JSX.Element {
           <FormField label="When flattening started" width="auto">
             <Datetime
               date={form.date}
+              disabled={!enabled}
               onChange={(date): void => setForm({ ...form, date })}
             />
           </FormField>

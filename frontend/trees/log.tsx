@@ -3,7 +3,7 @@ import { AppProps } from '../app';
 import { createLogs } from '../actions';
 import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
@@ -29,7 +29,7 @@ export default function LogTree({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const logIndex = [0, 1, 2, 3, 4];
   const [form, setForm] = useState({
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     diameters: new Array(logIndex.length).fill(''),
     isDialogOpen: false,
     lengths: new Array(logIndex.length).fill(''),

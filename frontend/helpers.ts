@@ -38,6 +38,14 @@ export function findHistoryFor(
 }
 
 // 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
+export function forHTMLDate(date: Date): string {
+  const pad = (num): string => `${num < 10 ? '0' : ''}${num}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}`;
+}
+
+// 👍 https://stackoverflow.com/questions/17415579/how-to-iso-8601-format-a-date-with-timezone-offset-in-javascript
 export function forHTMLDatetime(date: Date): string {
   const pad = (num): string => `${num < 10 ? '0' : ''}${num}`;
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(

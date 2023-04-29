@@ -1,7 +1,7 @@
 import { AppProps } from '../app';
 
 import { fld } from '../constants';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getCellValueAsNumber } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
@@ -22,7 +22,7 @@ import React from 'react';
 export default function ScrapLog({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     working: false
   });
   const numBoards = getCellValueAsNumber(data.log, fld.NUM_BOARDS);

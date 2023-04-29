@@ -1,7 +1,7 @@
 import { AppProps } from '../app';
 
 import { fld } from '../constants';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
@@ -21,7 +21,7 @@ import React from 'react';
 export default function ScrapProduct({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     working: false
   });
   const stageId = getLinkCellId(data.product, fld.STAGE);

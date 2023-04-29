@@ -13,11 +13,11 @@
     "SharedArrayBuffer": "readonly"
   },
   "parserOptions": {
-    "project": ["./frontend/tsconfig.json"],
     "ecmaFeatures": {
       "jsx": true
     },
     "ecmaVersion": 2018,
+    "project": ["./frontend/tsconfig.json"],
     "sourceType": "module"
   },
   "plugins": [
@@ -30,13 +30,18 @@
   ],
   "root": true,
   "rules": {
-    "no-constant-condition": ["error", { "checkLoops": false }],
+    "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-misused-promises": "off",
     "@typescript-eslint/unbound-method": "off",
-    "@typescript-eslint/naming-convention": "off",
-    "react/prop-types": 0,
+    "no-constant-condition": [
+      "error",
+      {
+        "checkLoops": false
+      }
+    ],
+    "react-hooks/exhaustive-deps": "warn",
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn"
+    "react/prop-types": 0
   },
   "settings": {
     "react": {

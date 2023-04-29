@@ -2,7 +2,7 @@ import { AppProps } from '../app';
 
 import { findHistoryFor } from '../helpers';
 import { fld } from '../constants';
-import { forHTMLDatetime } from '../helpers';
+import { forHTMLDate } from '../helpers';
 import { getLinkCellId } from '../helpers';
 import { updateRecord } from '../actions';
 
@@ -24,14 +24,11 @@ import React from 'react';
 export default function AirDryProduct({ ctx, data }: AppProps): JSX.Element {
   // 👇 prepare the form
   const [form, setForm] = useState({
-    date: forHTMLDatetime(new Date()),
+    date: forHTMLDate(new Date()),
     working: false
   });
   const stageId = getLinkCellId(data.product, fld.STAGE);
-  const enabled =
-    data.product &&
-    (stageId === data.stageIdBySymbol.PRE_DRY ||
-      stageId === data.stageIdBySymbol.AIR_DRYING);
+  const enabled = data.product && stageId === data.stageIdBySymbol.PRE_DRY;
   // 👇 already been processed at the desired stage?
   const alreadyProcessed = findHistoryFor(
     data.histories,
@@ -82,6 +79,7 @@ export default function AirDryProduct({ ctx, data }: AppProps): JSX.Element {
           <FormField label="When air drying started" width="auto">
             <Datetime
               date={form.date}
+              disabled={!enabled}
               onChange={(date): void => setForm({ ...form, date })}
             />
           </FormField>
