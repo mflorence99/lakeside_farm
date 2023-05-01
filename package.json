@@ -1,7 +1,8 @@
 {
   "scripts": {
-    "clean:deps": "rm -rf node_modules && rm -f package-lock.json && npm install --force",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx frontend"
+    "clean:deps": "rm -rf node_modules && rm -f package-lock.json && npm install --force && npm outdated",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx frontend",
+    "prettier": "prettier --write ."
   },
   "dependencies": {
     "@airtable/blocks": "^1",
@@ -22,6 +23,10 @@
     "eslint-plugin-react-hooks": "^4",
     "prettier": "^2",
     "prettier-plugin-package": "^1",
+    "stylelint": "^15",
+    "stylelint-config-standard": "^33",
+    "stylelint-order": "^6",
+    "stylelint-scss": "^5",
     "typescript": "^5"
   }
 }
