@@ -3,6 +3,8 @@ module.exports = {
   bracketSpacing: true,
   endOfLine: 'lf',
   htmlWhitespaceSensitivity: 'css',
+  order: 'alphabetical',
+
   printWidth: 80,
   proseWrap: 'never',
   quoteProps: 'consistent',
